@@ -57,7 +57,8 @@ async function main() {
     date: ranAt.toISOString().slice(0, 10),
     ranAt: ranAt.toISOString(),
     commit: git("rev-parse --short HEAD"),
-    uncommittedChanges: git("status --porcelain") !== "",
+    // Scorecards themselves do not count as changes.
+    uncommittedChanges: git("status --porcelain -- . :!eval/results") !== "",
     node: process.version,
     seed: ctx.seed,
     runsPerProperty: ctx.runs,
