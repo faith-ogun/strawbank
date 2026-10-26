@@ -18,6 +18,25 @@ malformed; a skipped eval does not fail it.
 A skipped eval lists exactly what it is waiting for. Once its inputs exist, it says "not
 built yet" until the eval itself is written.
 
+## E1: basket counting
+
+E1 runs on whatever basket photos exist. Until all 40 are in, its result is marked
+provisional and the target (at least 85% of baskets exact, none off by more than one item)
+is not judged. Ten photos are enough for spike S2 (at least 8 of 10 exact before any
+tuning).
+
+| Metric | What |
+|---|---|
+| `exactRate` | share of baskets with every item count right; a failed model call counts as wrong |
+| `meanItemError` | mean of the absolute error over every item of every basket |
+| `worstError` | the largest total error in one basket |
+| `offByMoreThanOne` | baskets whose total error is more than one item |
+| `sureExactRate` | of the baskets the model called sure, the share that was exact |
+
+"Sure" means every item's confidence is at least 0.8 and the model raised no problem with
+the photo: the same bar a recount must clear before the agent may refund. The scorecard
+keeps every model reply under `cases`, so a wrong count can be checked photo by photo.
+
 ## E4: money invariants
 
 Each property is checked against 1,000 generated cases by default (fast-check). The seed
