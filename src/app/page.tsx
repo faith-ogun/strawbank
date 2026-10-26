@@ -11,7 +11,7 @@ const surfaces = [
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
-      <h1 className="text-2xl font-semibold">Honesty Box</h1>
+      <h1 className="text-2xl font-semibold">Strawbank</h1>
       <p className="mt-2 leading-relaxed">
         An AI shopkeeper for unstaffed farm stands. It counts the basket, takes payment through PayPal, and tells the
         grower at dusk what sold and what walked. PayPal sandbox only.

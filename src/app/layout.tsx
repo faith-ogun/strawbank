@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Honesty Box",
+  title: "Strawbank",
   description: "An AI shopkeeper for unstaffed farm stands, paid through PayPal.",
 };
 

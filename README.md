@@ -1,74 +1,168 @@
-# Honesty Box (working title)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/strawbank-logo-reversed.png">
+    <img src="assets/readme/strawbank-logo.png" width="440" alt="Strawbank, a scarecrow jar keeping the stall">
+  </picture>
+</p>
 
-An AI shopkeeper for unstaffed farm stands, built for the
-[PayPal AI Hackathon](https://paypalaihackathon.devpost.com).
+<p align="center"><i>minds the honesty box while the grower is in the field</i></p>
 
-> **Status: in development.** The app shell runs locally and the money code is tested
-> (eval E4), but none of the flows below is built yet. This README will describe only what
-> works, with the numbers from `npm run eval`.
+<p align="center">
+  An AI shopkeeper for <b>unstaffed roadside farm stands</b>. The customer photographs their basket,<br>
+  the AI <b>counts</b> it, plain code works out the total, and they pay with <b>PayPal</b>. At dusk it tells<br>
+  the grower <b>what sold and what walked</b>, and it refunds small overcharges itself, within the grower's limit.
+</p>
 
-## The idea
+<p align="center">
+  <b>PayPal AI Hackathon</b> &nbsp;·&nbsp; PayPal sandbox only &nbsp;·&nbsp; MIT
+</p>
 
-Roadside stands selling eggs, vegetables, jam and flowers run on trust and a cash tin. The
-tin gets stolen, fewer people carry cash, and at dusk the grower cannot tell what sold from
-what walked.
+<p align="center">
+  <a href="#run-it-yourself"><b>◆ Run the money tests (offline, no keys)&nbsp;→</b></a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#how-a-day-works">How a day works</a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#the-rule-the-ai-never-touches-money">The money rule</a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#what-this-is-not">What this is not</a>
+</p>
 
-- **Morning:** the grower photographs the price card and the shelf. The AI reads the prices
-  and counts the stock; the grower confirms.
-- **Customer:** scans the QR code on the stand, photographs their basket, checks the count
-  and pays with PayPal.
-- **Dusk:** the grower photographs the shelf again. The agent compares stock, payments and
-  photos and says what sold and what is unaccounted for.
-- **Refunds:** small overcharges are refunded by the agent within the grower's limit; larger
-  ones wait for the grower.
+<p align="center">
+  <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
+  <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
+  <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
+  <img src="https://img.shields.io/badge/eval_E4-11_properties,_0_failures-2ea043" alt="eval E4: 11 properties, 0 failures">
+  <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
+  <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
+</p>
 
-The model reads, counts and explains. Every amount of money is worked out by plain code.
+---
+
+> **Status: in development.** The money code is written and tested (eval E4, below); the
+> customer, grower and ledger flows are being built. This README only claims what works, and
+> every result in it comes from `npm run eval`.
+
+---
+
+## What is this, in plain terms?
+
+All over Ireland, Britain and North America, farms sell eggs, jam, vegetables and flowers
+from a table at the end of the lane, with nobody there. You take what you want and leave
+the money in a jar or tin: an **honesty box**. It runs on trust, and three things go wrong:
+
+- **The tin gets stolen**
+  ([Lancashire](https://www.lep.co.uk/news/crime/callous-thieves-strike-again-after-honesty-box-stolen-from-ribble-valley-farm-3261252),
+  [British Columbia](https://globalnews.ca/news/11323028/lake-country-b-c-farm-stand-operating-on-the-honour-system-raided)).
+- **Fewer people carry cash**, so sales walk past.
+- **At dusk the grower cannot tell what sold from what walked**, so they cannot tell
+  whether the stand is worth keeping.
+
+Strawbank keeps the trust and adds a shopkeeper. A QR code on the stand opens the shop on
+the customer's phone, the AI counts the basket from a photo, and PayPal takes the payment.
+At dusk, one more photo of the shelf, and the grower gets the day's truth in plain words.
+
+---
+
+## How a day works
+
+| Moment | The AI | Plain code | PayPal (sandbox) |
+|---|---|---|---|
+| **Morning:** the grower photographs the price card and the shelf | reads the prices, counts the stock | nothing is for sale until the grower confirms | each new item becomes a catalogue product |
+| **A customer:** scans the QR code, photographs the basket | counts the basket, with how sure it is | the customer has the final word; code works out the total | an order with one line per item, then the capture |
+| **Something's wrong:** "I took one jar, not two" | recounts the stored photo | works out the refund, its cap, and who decides | the agent refunds small, clear cases within the grower's limit |
+| **Dusk:** the grower photographs the shelf | counts what is left, then explains the day | taken minus paid, per item; an unsure count says "uncertain", never "missing" | our ledger, built from signed webhooks |
+| **Next morning** | | compares our ledger with PayPal's records | Transaction Search |
+
+---
+
+## The rule: the AI never touches money
+
+The AI reads, counts and explains. **Every total, refund, cap and gap is plain code**,
+because if the same input must always give the same answer, a guess is not good enough.
+Even the AI's dusk explanation is checked: any number in it that code did not compute, and
+the AI's words are replaced by a plain template.
+
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 11
+properties, each tried against generated cases (fast-check), on **10,001 cases with 0
+failures** (scorecard `eval/results/2026-10-24.json`).
+
+| Id | The property |
+|---|---|
+| E4.1 | Order total = sum of lines (quantity x price) = PayPal `item_total`, in minor units |
+| E4.1b | A basket with an unknown item or a bad quantity never becomes an order |
+| E4.2 | A refund never exceeds what was paid minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim |
+| E4.2b | Under repeated, concurrent and failing requests, refunds never exceed what was captured |
+| E4.3 | The same refund request never produces two refunds |
+| E4.4 | A duplicate or late webhook never changes the ledger twice |
+| E4.5 | The AI's text never introduces a number that is not in the computed reconciliation |
+| E4.5b | Text that uses only computed numbers passes the check |
+| E4.5c | Whatever the AI writes, the text shown contains only computed numbers |
+| E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowed tools |
+| E4.6b | The agent never calls a tool outside its allowlist |
+
+The tests were checked by planting bugs in the money code (a total off by a cent, a refund
+limit off by a cent, a missing duplicate check, a ledger that counts a repeat twice); each
+planted bug made a property fail. The other evals (basket, shelf and price-card counting,
+whole simulated days, agent safety, the next-morning audit) are defined in
+[docs/eval.md](docs/eval.md) and switch on as their photos and features arrive.
+
+---
 
 ## Built with
 
-- PayPal (sandbox): Orders v2, Payments v2 refunds, Catalog Products, Transaction Search,
-  webhooks, the PayPal JS SDK and the PayPal Agent Toolkit
-- Gemini, through the Vercel AI SDK
-- AG Studio by AG Grid, for the grower's ledger
-- APIMatic Context Plugin, used while building
+The stack, as each part lands:
 
-## Setup
+- **PayPal, sandbox only:** Orders v2 with itemised lines and capture, Payments v2 refunds,
+  Catalog Products, Transaction Search, signed webhooks, the PayPal JS SDK, the PayPal Agent
+  Toolkit for the agent's tools, and the PayPal Server SDK, written with the **APIMatic
+  Context Plugin**.
+- **Gemini** on Google Vertex AI, through the Vercel AI SDK: reading, counting, explaining.
+- **AG Studio** by AG Grid: the grower's ledger dashboard and its agent.
+- **Next.js 16** (TypeScript), hosted on Google Cloud Run.
+
+---
+
+## Run it yourself
 
 Needs Node.js 20.9 or later.
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in the sandbox and Gemini values
-npm run dev                  # http://localhost:3000
-npm run eval                 # writes eval/results/<date>.json
+npm run eval       # the money tests: offline, no keys; writes eval/results/<date>.json
+npm run dev        # the app shell, on http://localhost:3000
 ```
 
-To come: sandbox accounts, the hosted demo link and test logins.
+For the PayPal and Gemini parts, copy `.env.example` to `.env.local` and fill in sandbox
+credentials. Hosted demo link and test logins: to come.
+
+---
 
 ## Code layout
 
-The layout follows the product spec's flows (F1 to F6).
-
 | Path | What |
 |---|---|
-| `src/lib/money.ts` | Money as whole minor units; decimal strings only at the edges |
-| `src/lib/orders.ts` | Counts x confirmed prices -> order lines and the Orders v2 body (F2) |
-| `src/lib/refunds.ts` | Refund amount, cap and who decides; at most one refund per request (F4) |
-| `src/lib/ledger.ts` | The webhook ledger; repeated or late webhooks change nothing |
-| `src/lib/reconcile.ts` | Taken, paid and gap per item at dusk (F3) |
-| `src/lib/explain-check.ts` | Rejects model text that uses a number code did not compute |
-| `src/agent/tools.ts` | The agent's PayPal tool allowlist |
-| `src/lib/ai/model.ts` | Gemini through the Vercel AI SDK |
-| `src/lib/paypal/config.ts` | PayPal sandbox endpoint and credentials |
-| `src/app/s/[standId]` | The customer's stand page and receipt (F2, F4) |
-| `src/app/grower` | Morning set-up, dusk count, refund queue (F1, F3, F4) |
-| `src/app/ledger` | The grower's ledger (F6) |
-| `src/app/api` | Orders, capture, photo counting, refunds, webhooks, dusk, audit |
-| `eval/` | The eval: see [docs/eval.md](docs/eval.md) |
+| `src/lib/money.ts` | money as whole minor units; decimal strings only at the edges |
+| `src/lib/orders.ts` | counts x confirmed prices, order lines, the Orders v2 body |
+| `src/lib/refunds.ts` | refund amount, cap and who decides; at most one refund per request |
+| `src/lib/ledger.ts` | the webhook ledger; repeated or late webhooks change nothing |
+| `src/lib/reconcile.ts` | taken, paid and gap per item at dusk |
+| `src/lib/explain-check.ts` | rejects AI text with a number code did not compute |
+| `src/agent/tools.ts` | the agent's PayPal tool allowlist |
+| `src/app/` | the stand page and receipt, the grower's pages, the ledger, the API routes |
+| `eval/` | the eval; see [docs/eval.md](docs/eval.md) |
 
-The model reads photos, counts and explains. Totals, refunds, caps and gaps are plain code,
-and the model's explanations are checked against the computed numbers before they are
-shown.
+---
+
+## What this is not
+
+- **Not theft prevention.** It measures what walked; it does not stop it.
+- **Not surveillance.** The camera points at the shelf and the basket, never at people,
+  and nobody is identified.
+- **Not a point-of-sale terminal.** Customers pay on their own phones.
+- **Never the decider of a price or an amount of money.** The grower sets prices; code does
+  the sums.
+
+---
 
 ## Licence
 

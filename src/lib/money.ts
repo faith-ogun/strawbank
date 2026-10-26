@@ -1,4 +1,4 @@
-// Every amount of money in Honesty Box is a whole number of minor units
+// Every amount of money in Strawbank is a whole number of minor units
 // (cents). Decimal strings appear only at the edges: the grower's price card
 // on the way in, and PayPal's API on the way out. The model never produces
 // an amount; see spec section 6.
