@@ -84,6 +84,10 @@ async function main() {
     console.log(`${r.id}  ${r.status.toUpperCase().padEnd(4)}  ${r.title}`);
     if (r.reason) console.log(`      ${r.reason}`);
     for (const need of r.needs ?? []) console.log(`      needs: ${need}`);
+    if (r.metrics) {
+      const shown = Object.entries(r.metrics).map(([k, v]) => `${k} ${Number.isInteger(v) ? v : v.toFixed(3)}`);
+      console.log(`      ${shown.join(", ")}`);
+    }
     for (const p of r.properties ?? []) {
       console.log(`      ${p.passed ? "ok  " : "FAIL"} ${p.id.padEnd(6)} ${p.runs} cases  ${p.claim}`);
       if (p.error) console.log(`           ${p.error}\n           counterexample: ${p.counterexample}`);

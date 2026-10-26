@@ -23,6 +23,8 @@ export type EvalResult = {
   needs?: string[];
   metrics?: Record<string, number>;
   properties?: PropertyResult[];
+  /** One entry per photo for the photo evals: the truth, the model's reply, any error. */
+  cases?: object[];
 };
 
 export type EvalContext = {
