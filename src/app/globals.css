@@ -1,13 +1,72 @@
 @import "tailwindcss";
 
+/*
+  Strawbank: design tokens, taken from the logo.
+
+  Five colours came off the brand sheet: navy #0A1643, straw #F0BB57, mint
+  #4AEB94, coin gold #EBA620 and white. Everything below is those plus the
+  tints and shades needed to build a page out of them.
+
+  Roles, kept strict:
+    straw   Strawbank's own voice: the primary action, the one marked word per
+            headline, the hat. Small straw text uses straw-ink, never straw.
+    mint    paid, confirmed, sure. Never decoration.
+    gap     taken and not paid for. Only ever next to a computed number.
+    unsure  a count the AI is not sure of. Says "uncertain", never "missing".
+    chalk   the grower's price card, and nothing else.
+
+  Rules of the system:
+    - The page is white; the cream is a band, the navy is a band.
+    - One hard 3px navy shadow, under straw buttons and artefact cards: the
+      look of a printed tag. The signature.
+    - Flat colour. The only gradient is the sky behind the stand.
+*/
+
+@theme {
+  --color-ink: #0a1643;
+  --color-ink-2: #2b3561;
+  --color-ink-3: #5a6283;
+  --color-ink-4: #8e94ae;
+
+  --color-canvas: #ffffff;
+  --color-paper: #fbf4e4;
+  --color-paper-2: #f5e8c9;
+  --color-line: #ece3cf;
+  --color-line-2: #dccdaa;
+
+  --color-straw: #f0bb57;
+  --color-straw-2: #e5a73c;
+  --color-straw-ink: #8a5a0b;
+  --color-straw-soft: #fcebc4;
+  --color-coin: #eba620;
+
+  --color-mint: #4aeb94;
+  --color-mint-ink: #0f7a45;
+  --color-mint-soft: #d8fae6;
+
+  --color-gap: #c4462b;
+  --color-gap-soft: #fbe3db;
+  --color-unsure: #5f6890;
+  --color-unsure-soft: #e8eaf3;
+
+  --color-chalk: #232b27;
+  --color-chalk-line: #f2efe6;
+  --color-wood: #b98552;
+
+  --font-display: var(--font-outfit), "Avenir Next", system-ui, sans-serif;
+  --font-sans: var(--font-figtree), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-hand: var(--font-kalam), "Bradley Hand", cursive;
+
+  --shadow-tag: 0 3px 0 var(--color-ink);
+  --shadow-card: 0 1px 2px rgb(10 22 67 / 0.05), 0 14px 36px -14px rgb(10 22 67 / 0.22);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 :root {
   --background: #fbfaf7;
   --foreground: #1c1b18;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,5 +79,62 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The marketing page sets its own surfaces, light only: it is the brand. */
+.landing {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  color-scheme: light;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+/* Thermal receipt paper: a torn, zigzag bottom edge. */
+.receipt-edge {
+  --tooth: 10px;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.photo-flash {
+  animation: flash 520ms var(--ease-out-quint) both;
+}
+
+/* The faded logo under the 3D stand, until the stand has drawn its first frame. */
+.scene-frame:has([data-ready]) .scene-poster {
+  display: none;
 }
