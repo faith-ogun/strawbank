@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/strawbank-logo-reversed.png">
-    <img src="assets/readme/strawbank-logo.png" width="440" alt="Strawbank, a scarecrow jar keeping the stall">
+    <img src="assets/readme/strawbank-logo.png" width="460" alt="Strawbank, a scarecrow jar keeping the stall">
   </picture>
 </p>
 
@@ -18,8 +18,6 @@
 </p>
 
 <p align="center">
-  <a href="#run-it-yourself"><b>◆ Run the money tests (offline, no keys)&nbsp;→</b></a>
-  &nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#how-a-day-works">How a day works</a>
   &nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#the-rule-the-ai-never-touches-money">The money rule</a>
@@ -128,7 +126,7 @@ Needs Node.js 20.9 or later.
 
 ```bash
 npm install
-npm run eval       # the money tests: offline, no keys; writes eval/results/<date>.json
+npm run eval       # the evals; writes eval/results/<date>.json
 npm run dev        # the app shell, on http://localhost:3000
 ```
 
