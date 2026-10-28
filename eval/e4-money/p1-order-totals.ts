@@ -1,6 +1,7 @@
 import fc from "fast-check";
 import { toMinor } from "../../src/lib/money";
 import { MAX_QUANTITY, OrderError, buildLines, createOrderBody, orderTotalMinor } from "../../src/lib/orders";
+import { toOrderRequest } from "../../src/lib/paypal/orders";
 import { assert, assertThrows, catalogueArb, currencyArb, keyArb, moneyProperty } from "./shared";
 
 const basketArb = catalogueArb.chain((catalogue) =>
@@ -59,6 +60,38 @@ const badBasketsRejected = fc.property(
   },
 );
 
+// The PayPal Server SDK takes camelCase models, so the tested wire body is
+// translated before it is sent. Checked here field by field against the body,
+// written without reference to toOrderRequest's own code.
+const sdkRequestMatchesBody = fc.property(basketArb, fc.boolean(), ({ catalogue, quantities, currency }, withExperience) => {
+  const counts = Object.fromEntries(catalogue.map((item, i) => [item.key, quantities[i] ?? 1]));
+  fc.pre(Object.values(counts).some((q) => q > 0));
+  const body = createOrderBody(buildLines(catalogue, counts), currency, "ref-1");
+  const unit = body.purchase_units[0];
+  const experience = withExperience ? { returnUrl: "https://example.test/ok", cancelUrl: "https://example.test/no" } : undefined;
+  const request = toOrderRequest(body, experience);
+
+  assert(String(request.intent) === "CAPTURE", "intent is not CAPTURE");
+  assert(request.purchaseUnits.length === 1, "not exactly one purchase unit");
+  const sent = request.purchaseUnits[0];
+  assert(sent.referenceId === unit.reference_id, "reference id changed");
+  assert(sent.amount.value === unit.amount.value && sent.amount.currencyCode === unit.amount.currency_code, "amount changed");
+  const itemTotal = sent.amount.breakdown?.itemTotal;
+  assert(
+    itemTotal?.value === unit.amount.breakdown.item_total.value && itemTotal.currencyCode === unit.amount.breakdown.item_total.currency_code,
+    "item_total changed",
+  );
+  assert(sent.items?.length === unit.items.length, "number of lines changed");
+  unit.items.forEach((item, i) => {
+    const s = sent.items![i];
+    assert(s.name === item.name && s.sku === item.sku && s.quantity === item.quantity, `line ${i} changed`);
+    assert(s.unitAmount.value === item.unit_amount.value && s.unitAmount.currencyCode === item.unit_amount.currency_code, `line ${i} price changed`);
+    assert(String(s.category) === "PHYSICAL_GOODS", `line ${i} category changed`);
+  });
+  const context = request.paymentSource?.paypal?.experienceContext;
+  assert(withExperience ? context?.returnUrl === experience!.returnUrl && context?.cancelUrl === experience!.cancelUrl : !request.paymentSource, "return and cancel links wrong");
+});
+
 export const p1 = [
   moneyProperty(
     "E4.1",
@@ -69,5 +102,10 @@ export const p1 = [
     "E4.1b",
     "A basket with an unknown item or a quantity that is not a whole number from 0 to 99 never becomes an order",
     badBasketsRejected,
+  ),
+  moneyProperty(
+    "E4.1c",
+    "The PayPal SDK request carries the order body's amounts and lines unchanged",
+    sdkRequestMatchesBody,
   ),
 ];

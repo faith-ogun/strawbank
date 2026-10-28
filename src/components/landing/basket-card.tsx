@@ -5,13 +5,12 @@
 // uses (src/lib/orders.ts), never from the model.
 
 import { useState } from "react";
+import { DEMO_CATALOGUE } from "@/lib/demo-stand";
 import { formatMoney, toDecimal } from "@/lib/money";
-import { type CatalogueItem, MAX_QUANTITY, buildLines, orderTotalMinor } from "@/lib/orders";
+import { MAX_QUANTITY, buildLines, orderTotalMinor } from "@/lib/orders";
 
-const CATALOGUE: CatalogueItem[] = [
-  { key: "eggs-6", name: "Eggs (6)", unitMinor: 350 },
-  { key: "onions-bag", name: "Onions, bag", unitMinor: 200 },
-];
+/** The two items in the example basket, at the demo stand's own prices. */
+const CATALOGUE = DEMO_CATALOGUE.filter((item) => item.key === "eggs-6" || item.key === "onions-bag");
 
 /** What the AI counted in the basket photo, and how sure it was. An example. */
 const COUNTED: Record<string, { count: number; sure: boolean }> = {
