@@ -54,6 +54,7 @@ EVAL_SEED=123456 npm run eval
 | E4.1c | The PayPal SDK request carries the order body's amounts and lines unchanged |
 | E4.2 | A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim |
 | E4.2b | Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured |
+| E4.2c | A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending |
 | E4.3 | The same refund request never produces two refunds |
 | E4.4 | A duplicate or late webhook never changes the ledger twice |
 | E4.5 | The model's text never introduces a number that is not in the computed reconciliation |
@@ -61,6 +62,7 @@ EVAL_SEED=123456 npm run eval
 | E4.5c | Whatever the model writes, the text shown contains only computed numbers |
 | E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools |
 | E4.6b | The agent never calls a tool outside its allowlist |
+| E4.6c | No tool handed to the model can move money; refunds run only from code |
 
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
