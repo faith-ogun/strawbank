@@ -18,6 +18,8 @@ export type CatalogueItem = {
   unitMinor: number;
   /** Catalog Products id, once `create_product` has run for this item. */
   productId?: string;
+  /** How it looks on the stand, to help the model count it. Never sent to PayPal. */
+  looks?: string;
 };
 
 export type OrderLine = {

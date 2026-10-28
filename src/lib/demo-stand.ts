@@ -15,10 +15,10 @@ export const DEMO_STAND: Stand = {
 };
 
 export const DEMO_CATALOGUE: CatalogueItem[] = [
-  { key: "eggs-6", name: "Eggs (6)", unitMinor: 350 },
-  { key: "onions-bag", name: "Onions, bag", unitMinor: 200 },
-  { key: "potatoes-bag", name: "Potatoes, bag", unitMinor: 300 },
-  { key: "jam", name: "Jam", unitMinor: 450 },
+  { key: "eggs-6", name: "Eggs (6)", unitMinor: 350, looks: "a box of six eggs" },
+  { key: "onions-bag", name: "Onions, bag", unitMinor: 200, looks: "onions in a net or tied bundle; one bag is one item" },
+  { key: "potatoes-bag", name: "Potatoes, bag", unitMinor: 300, looks: "potatoes in a paper bag; one bag is one item" },
+  { key: "jam", name: "Jam", unitMinor: 450, looks: "a jar with a cloth or metal lid, label turned away" },
 ];
 
 /** Today's stand and catalogue, or undefined for a stand that does not exist. */

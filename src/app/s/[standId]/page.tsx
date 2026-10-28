@@ -1,19 +1,38 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Placeholder } from "@/components/placeholder";
+import { StandShop } from "@/components/stand/stand-shop";
+import { findStand } from "@/lib/demo-stand";
+import { paypalCredentials } from "@/lib/paypal/config";
 
 // F2. The customer scans the stand's QR code, photographs the basket, checks
-// the count and pays. Totals come from src/lib/orders.ts, never the model.
+// the count and pays. Prices come from the server; totals from
+// src/lib/orders.ts, never the model.
+
+export const metadata: Metadata = { title: "Strawbank · pay at the stand" };
+
+async function Stand({ params }: { params: PageProps<"/s/[standId]">["params"] }) {
+  const { standId } = await params;
+  const found = findStand(standId);
+  if (!found) notFound();
+  return (
+    <StandShop
+      standId={found.stand.id}
+      standName={found.stand.name}
+      currency={found.stand.currency}
+      catalogue={found.catalogue}
+      // The client id is public by design: the PayPal button needs it in the browser.
+      paypalClientId={paypalCredentials().clientId}
+    />
+  );
+}
+
 export default function StandPage({ params }: PageProps<"/s/[standId]">) {
   return (
-    <Placeholder flow="F2. A customer buys" title="Today at the stand">
-      <Suspense fallback={<p>Loading the stand...</p>}>
-        {params.then(({ standId }) => (
-          <p>
-            Stand <code>{standId}</code>: today&apos;s prices, the basket photo, the count with plus and minus buttons,
-            and PayPal checkout.
-          </p>
-        ))}
+    <main className="landing min-h-svh flex-1">
+      <Suspense fallback={<p className="mx-auto max-w-[480px] px-4 pt-10 text-ink-3">Opening the stand…</p>}>
+        <Stand params={params} />
       </Suspense>
-    </Placeholder>
+    </main>
   );
 }

@@ -1,0 +1,11 @@
+# Never in the image: secrets, local builds, git history, eval photos.
+.env*
+!.env.example
+.git
+.next
+node_modules
+tsconfig.tsbuildinfo
+eval/photos
+eval/results
+public/_spike
+npm-debug.log*

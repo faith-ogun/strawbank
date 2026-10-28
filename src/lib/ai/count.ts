@@ -55,17 +55,29 @@ function replySchema(keys: [string, ...string[]]) {
   });
 }
 
+export type ThinkingLevel = "minimal" | "low" | "medium" | "high";
+
+/**
+ * How much the model reasons before it counts. A customer is waiting at the
+ * stand, so this trades a little care for speed; eval E1 records both.
+ */
+export const COUNT_THINKING: ThinkingLevel = "low";
+
 export async function countBasket(input: {
   photo: Uint8Array;
   /** For example "image/jpeg". */
   mediaType: string;
   items: CountableItem[];
+  thinking?: ThinkingLevel;
 }): Promise<BasketCount> {
   const keys = input.items.map((i) => i.key);
   if (keys.length === 0) throw new Error("today's list is empty");
+  const thinkingConfig = { thinkingLevel: input.thinking ?? COUNT_THINKING };
 
   const { output } = await generateText({
     model: geminiModel(),
+    // Read by whichever provider is in use: Vertex AI or the Gemini API.
+    providerOptions: { vertex: { thinkingConfig }, google: { thinkingConfig } },
     instructions: INSTRUCTIONS,
     output: Output.object({ schema: replySchema(keys as [string, ...string[]]) }),
     messages: [

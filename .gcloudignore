@@ -1,0 +1,12 @@
+# What `gcloud run deploy --source` never uploads: secrets, local builds,
+# git history, eval photos and results.
+.env*
+!.env.example
+.git
+.gitignore
+.next
+node_modules
+tsconfig.tsbuildinfo
+eval/photos
+eval/results
+public/_spike
