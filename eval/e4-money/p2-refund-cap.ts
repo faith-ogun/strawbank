@@ -1,8 +1,9 @@
 import fc from "fast-check";
 import { MAX_QUANTITY } from "../../src/lib/orders";
-import { MIN_RECOUNT_CONFIDENCE, decideRefund } from "../../src/lib/refunds";
+import { ToolkitRefundGateway } from "../../src/lib/paypal/refunds";
+import { MIN_RECOUNT_CONFIDENCE, RefundRejected, decideRefund } from "../../src/lib/refunds";
 import { scenarioArb, simulate } from "./refund-sim";
-import { assert, catalogueArb, moneyProperty } from "./shared";
+import { assert, catalogueArb, currencyArb, moneyProperty } from "./shared";
 
 const claimArb = catalogueArb.chain((catalogue) => {
   const lines = fc
@@ -76,6 +77,69 @@ const refundsWithinCapture = fc.asyncProperty(scenarioArb, async (scenario) => {
   }
 });
 
+// What the PayPal gateway sends and how it reads PayPal's reply. The toolkit's
+// create_refund never throws: it returns PayPal's reply, or the error, as a JSON
+// string, so the gateway must tell a refund, a refusal and silence apart.
+const replyArb = fc.oneof(
+  fc.record({ kind: fc.constant("ok" as const), status: fc.constantFrom("COMPLETED", "PENDING"), id: fc.stringMatching(/^[A-Z0-9]{17}$/) }),
+  fc.record({ kind: fc.constant("refused" as const), status: fc.constantFrom(400, 404, 409, 422) }),
+  fc.record({ kind: fc.constant("unknown" as const), raw: fc.constantFrom(
+    JSON.stringify({ code: "PAYPAL_API_HTTP_ERROR", status: 500 }),
+    JSON.stringify({ code: "PAYPAL_API_HTTP_ERROR", status: 503 }),
+    JSON.stringify({ code: "PAYPAL_API_NO_RESPONSE" }),
+    JSON.stringify({ error: { message: "socket hang up", type: "paypal_error" } }),
+    "not json",
+    JSON.stringify({ id: "X", status: "SOMETHING_NEW" }),
+  ) }),
+);
+
+const gatewaySendsCodesAmount = fc.asyncProperty(
+  fc.integer({ min: 1, max: 99_999_999 }),
+  currencyArb,
+  fc.stringMatching(/^[A-Z0-9]{17}$/),
+  fc.uuid(),
+  replyArb,
+  async (amountMinor, currency, captureId, requestId, reply) => {
+    const sent: { key?: string; args?: { capture_id?: string; amount?: { currency_code?: string; value?: string } } } = {};
+    const gateway = new ToolkitRefundGateway((key) => {
+      sent.key = key;
+      return {
+        create_refund: {
+          execute: async (args: never) => {
+            sent.args = args;
+            if (reply.kind === "ok") return JSON.stringify({ id: reply.id, status: reply.status });
+            if (reply.kind === "refused") return JSON.stringify({ code: "PAYPAL_API_HTTP_ERROR", status: reply.status });
+            return reply.raw;
+          },
+        },
+      };
+    });
+
+    let outcome: unknown;
+    let thrown: unknown;
+    try {
+      outcome = await gateway.refund({ captureId, amountMinor, currency, idempotencyKey: `refund-${requestId}` });
+    } catch (error) {
+      thrown = error;
+    }
+
+    // Worked out independently of src/lib/money.ts.
+    const expected = `${Math.floor(amountMinor / 100)}.${String(amountMinor % 100).padStart(2, "0")}`;
+    assert(sent.key === `refund-${requestId}`, "the toolkit was not given this refund's own request id");
+    assert(sent.args?.capture_id === captureId, "wrong capture");
+    assert(sent.args?.amount?.value === expected, `sent ${sent.args?.amount?.value}, code decided ${expected}`);
+    assert(sent.args?.amount?.currency_code === currency, "wrong currency");
+    if (reply.kind === "ok") {
+      const got = outcome as { paypalRefundId?: string; status?: string } | undefined;
+      assert(got?.paypalRefundId === reply.id && got.status === reply.status, "a refund was not read back");
+    } else if (reply.kind === "refused") {
+      assert(thrown instanceof RefundRejected, `a ${reply.status} refusal did not free the amount`);
+    } else {
+      assert(thrown !== undefined && !(thrown instanceof RefundRejected), "an unknown outcome was treated as settled");
+    }
+  },
+);
+
 export const p2 = [
   moneyProperty(
     "E4.2",
@@ -86,5 +150,10 @@ export const p2 = [
     "E4.2b",
     "Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured",
     refundsWithinCapture,
+  ),
+  moneyProperty(
+    "E4.2c",
+    "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
+    gatewaySendsCodesAmount,
   ),
 ];
