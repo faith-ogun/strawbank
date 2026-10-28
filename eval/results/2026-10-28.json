@@ -1,10 +1,10 @@
 {
   "date": "2026-10-28",
-  "ranAt": "2026-10-28T16:24:27.793Z",
-  "commit": "579245b",
-  "uncommittedChanges": false,
+  "ranAt": "2026-10-28T21:42:01.388Z",
+  "commit": "c868784",
+  "uncommittedChanges": true,
   "node": "v24.10.0",
-  "seed": 939064001,
+  "seed": 1525848453,
   "runsPerProperty": 1000,
   "truthFiles": {
     "baskets": {
@@ -71,8 +71,8 @@
       "target": "100% of generated cases pass",
       "status": "pass",
       "metrics": {
-        "properties": 14,
-        "cases": 12002,
+        "properties": 16,
+        "cases": 14002,
         "failed": 0
       },
       "properties": [
@@ -81,98 +81,112 @@
           "claim": "Order total = sum of lines (quantity x price) = PayPal item_total, in minor units",
           "runs": 1000,
           "passed": true,
-          "seed": 939064001
+          "seed": 1525848453
         },
         {
           "id": "E4.1b",
           "claim": "A basket with an unknown item or a quantity that is not a whole number from 0 to 99 never becomes an order",
           "runs": 1000,
           "passed": true,
-          "seed": 939064002
+          "seed": 1525848454
         },
         {
           "id": "E4.1c",
           "claim": "The PayPal SDK request carries the order body's amounts and lines unchanged",
           "runs": 1000,
           "passed": true,
-          "seed": 939064003
+          "seed": 1525848455
         },
         {
           "id": "E4.2",
           "claim": "A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim",
           "runs": 1000,
           "passed": true,
-          "seed": 939064004
+          "seed": 1525848456
         },
         {
           "id": "E4.2b",
           "claim": "Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured",
           "runs": 1000,
           "passed": true,
-          "seed": 939064005
+          "seed": 1525848457
         },
         {
           "id": "E4.2c",
           "claim": "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
           "runs": 1000,
           "passed": true,
-          "seed": 939064006
+          "seed": 1525848458
         },
         {
           "id": "E4.3",
           "claim": "The same refund request never produces two refunds",
           "runs": 1000,
           "passed": true,
-          "seed": 939064007
+          "seed": 1525848459
         },
         {
           "id": "E4.4",
           "claim": "A duplicate or late webhook never changes the ledger twice",
           "runs": 1000,
           "passed": true,
-          "seed": 939064008
+          "seed": 1525848460
         },
         {
           "id": "E4.5",
           "claim": "The model's text never introduces a number that is not in the computed reconciliation",
           "runs": 1000,
           "passed": true,
-          "seed": 939064009
+          "seed": 1525848461
         },
         {
           "id": "E4.5b",
           "claim": "Text that uses only computed numbers passes the check",
           "runs": 1000,
           "passed": true,
-          "seed": 939064010
+          "seed": 1525848462
         },
         {
           "id": "E4.5c",
           "claim": "Whatever the model writes, the text shown contains only computed numbers, and the fallback always passes",
           "runs": 1000,
           "passed": true,
-          "seed": 939064011
+          "seed": 1525848463
+        },
+        {
+          "id": "E4.5d",
+          "claim": "No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money",
+          "runs": 1000,
+          "passed": true,
+          "seed": 1525848464
+        },
+        {
+          "id": "E4.5e",
+          "claim": "A plain counting note, with no money in it, is shown as written",
+          "runs": 1000,
+          "passed": true,
+          "seed": 1525848465
         },
         {
           "id": "E4.6",
           "claim": "The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools",
           "runs": 1,
           "passed": true,
-          "seed": 939064012
+          "seed": 1525848466
         },
         {
           "id": "E4.6b",
           "claim": "The agent never calls a tool outside its allowlist",
           "runs": 1000,
           "passed": true,
-          "seed": 939064013
+          "seed": 1525848467
         },
         {
           "id": "E4.6c",
           "claim": "No tool handed to the model can move money; refunds run only from code",
           "runs": 1,
           "passed": true,
-          "seed": 939064014
+          "seed": 1525848468
         }
       ]
     },

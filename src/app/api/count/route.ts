@@ -32,7 +32,10 @@ export async function POST(request: Request) {
     });
     return Response.json({ ...count, sureAt: SURE_CONFIDENCE });
   } catch (error) {
-    console.error("count failed:", error instanceof Error ? error.message : error);
+    console.error("count failed:", error instanceof Error ? `${error.name}: ${error.message}` : error);
+    if (error instanceof Error && error.name === "TimeoutError") {
+      return Response.json({ error: "counting took too long; enter it yourself, or try again" }, { status: 504 });
+    }
     return Response.json({ error: "the basket could not be counted; try again, or enter it yourself" }, { status: 502 });
   }
 }

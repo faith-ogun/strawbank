@@ -27,6 +27,9 @@ type Props = { standId: string; standName: string; currency: Currency; catalogue
 
 const zeros = (catalogue: CatalogueItem[]) => Object.fromEntries(catalogue.map((i) => [i.key, 0]));
 
+/** "this box holds 5 eggs, not 6" -> "This box holds 5 eggs, not 6." */
+const asSentence = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}${/[.!?]$/.test(text) ? "" : "."}`;
+
 async function readError(response: Response): Promise<string> {
   const body = (await response.json().catch(() => ({}))) as { error?: string };
   return body.error ?? `the server said ${response.status}`;
@@ -63,7 +66,8 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
       const form = new FormData();
       form.set("standId", standId);
       form.set("photo", await shrinkPhoto(file), "basket.jpg");
-      const response = await fetch("/api/count", { method: "POST", body: form });
+      // The server gives up after about twenty seconds; this covers a dead signal.
+      const response = await fetch("/api/count", { method: "POST", body: form, signal: AbortSignal.timeout(30_000) });
       if (!response.ok) throw new Error(await readError(response));
       const reply = (await response.json()) as CountReply;
       if (mine !== attempt.current) return;
@@ -215,6 +219,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
               const sure = (phase.reply?.confidence[item.key] ?? 0) >= (phase.reply?.sureAt ?? 1);
               const changed = phase.reply !== undefined && counts[item.key] !== counted;
               const n = counts[item.key] ?? 0;
+              const note = phase.reply?.notes[item.key];
               return (
                 <li key={item.key} className={`flex items-center gap-3 py-3 ${n === 0 ? "opacity-70" : ""}`}>
                   <div className="min-w-0 flex-1">
@@ -228,6 +233,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
                       )}
                       {changed && <span className="rounded-full bg-paper px-2 py-0.5 font-medium text-straw-ink">you changed this</span>}
                     </p>
+                    {note && !changed && <p className="mt-1 text-sm text-straw-ink">{asSentence(note)}</p>}
                   </div>
                   <div className="flex items-center rounded-full border border-line-2">
                     <button type="button" onClick={() => change(item.key, -1)} className="grid h-11 w-11 place-items-center rounded-full text-xl text-ink active:bg-paper" aria-label={`One fewer: ${item.name}`}>

@@ -1,4 +1,5 @@
 import fc from "fast-check";
+import { type CountReplyFromModel, readReply } from "../../src/lib/ai/count";
 import { checkNumbers, explanationToShow } from "../../src/lib/explain-check";
 import { type Currency, formatMoney } from "../../src/lib/money";
 import { allowedNumbers, reconcileDay, templateExplanation } from "../../src/lib/reconcile";
@@ -208,6 +209,64 @@ const shownTextIsSafe = fc.property(
   },
 );
 
+// The count's notes, unlisted items and problem are model text shown to the
+// customer with no computed numbers to check against, so they must not mention
+// money at all. The money markers are listed here, apart from src/lib, so the
+// two lists can catch each other out.
+const MONEY_MARKERS = ["€", "$", "£", "¢", "EUR", "GBP", "USD", "euro", "euros", "cent", "cents", "pence", "penny",
+  "pound", "pounds", "dollar", "dollars", "price", "prices", "priced", "cost", "costs", "pay", "paid", "payment",
+  "charge", "charged", "refund", "refunded", "total", "free", "cheap", "discount", "worth", "owed"];
+const COUNT_WORDS = ["this", "box", "holds", "5", "eggs", "not", "6", "one", "bag", "is", "torn", "jar", "lid",
+  "missing", "two", "loose", "onions", "in", "the", "basket", "potatoes", "a", "slot", "empty", "label", "turned",
+  "away", "half", "hidden", "behind", "carrots", "bunch"];
+
+const caseArb = (word: string) => fc.constantFrom(word, word.toUpperCase(), word[0].toUpperCase() + word.slice(1));
+const plainNoteArb = fc.array(fc.constantFrom(...COUNT_WORDS), { minLength: 1, maxLength: 8 }).map((w) => w.join(" "));
+const moneyNoteArb = fc
+  .tuple(
+    fc.array(fc.constantFrom(...COUNT_WORDS), { maxLength: 4 }),
+    fc.constantFrom(...MONEY_MARKERS).chain(caseArb),
+    fc.constantFrom(" ", "", " 3.50 ", "2,00 ", ": "),
+    fc.array(fc.constantFrom(...COUNT_WORDS), { maxLength: 4 }),
+  )
+  .map(([before, marker, join, after]) => [...before, `${join.trimStart()}${marker}`, ...after].join(" "));
+
+/** True if a reader would take `text` to be about money. */
+function talksMoney(text: string): boolean {
+  const words = text.toLowerCase().split(/[^\p{L}]+/u);
+  return MONEY_MARKERS.some((m) => (/\p{L}/u.test(m) ? words.includes(m.toLowerCase()) : text.includes(m)));
+}
+
+const KEYS = ["eggs-6", "onions-bag", "potatoes-bag", "jam"];
+const anyNoteArb = fc.oneof(plainNoteArb, moneyNoteArb);
+const replyArb: fc.Arbitrary<CountReplyFromModel> = fc.record({
+  items: fc.array(
+    fc.record({
+      key: fc.constantFrom(...KEYS),
+      count: fc.integer({ min: 0, max: 5 }),
+      confidence: fc.double({ min: 0, max: 1, noNaN: true }),
+      note: fc.option(anyNoteArb, { nil: null }),
+    }),
+    { maxLength: 6 },
+  ),
+  unlisted: fc.array(fc.record({ what: anyNoteArb, count: fc.integer({ min: 1, max: 5 }) }), { maxLength: 3 }),
+  problem: fc.option(anyNoteArb, { nil: null }),
+});
+
+const countTextHasNoMoney = fc.property(replyArb, (reply) => {
+  const count = readReply(KEYS, reply);
+  const texts = [...Object.values(count.notes), ...count.unlisted.map((u) => u.what), ...(count.problem ? [count.problem] : [])];
+  for (const text of texts) assert(!talksMoney(text), `"${text}" mentions money but would be shown to the customer`);
+  for (const key of Object.keys(count.notes)) {
+    assert(count.confidence[key] <= 0.5, `${key} has a note but is shown as sure (${count.confidence[key]})`);
+  }
+});
+
+const plainNotesKept = fc.property(plainNoteArb, fc.integer({ min: 1, max: 5 }), (note, n) => {
+  const count = readReply(KEYS, { items: [{ key: "eggs-6", count: n, confidence: 1, note }], unlisted: [], problem: null });
+  assert(count.notes["eggs-6"] === note, `the plain note "${note}" was hidden`);
+});
+
 export const p5 = [
   moneyProperty(
     "E4.5",
@@ -220,4 +279,10 @@ export const p5 = [
     "Whatever the model writes, the text shown contains only computed numbers, and the fallback always passes",
     shownTextIsSafe,
   ),
+  moneyProperty(
+    "E4.5d",
+    "No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money",
+    countTextHasNoMoney,
+  ),
+  moneyProperty("E4.5e", "A plain counting note, with no money in it, is shown as written", plainNotesKept),
 ];

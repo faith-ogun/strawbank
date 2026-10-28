@@ -8,8 +8,15 @@
 import { google } from "@ai-sdk/google";
 import { googleVertex } from "@ai-sdk/google-vertex";
 
-export function geminiModel() {
-  const id = process.env.GEMINI_MODEL;
+/**
+ * "careful" (GEMINI_MODEL) for work that can wait, such as the recount behind a
+ * refund; "fast" (GEMINI_FAST_MODEL) for a customer waiting at the stand.
+ * Without GEMINI_FAST_MODEL, both use GEMINI_MODEL.
+ */
+export type ModelSpeed = "careful" | "fast";
+
+export function geminiModel(speed: ModelSpeed = "careful") {
+  const id = (speed === "fast" && process.env.GEMINI_FAST_MODEL) || process.env.GEMINI_MODEL;
   if (!id) throw new Error("GEMINI_MODEL must be set");
   return process.env.AI_PROVIDER === "google" ? google(id) : googleVertex(id);
 }

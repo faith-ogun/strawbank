@@ -12,6 +12,8 @@
 // and always reject. Catalogue item names are removed first, so "Half-dozen
 // eggs" or "Eggs (6)" never count.
 
+import { CURRENCIES } from "./money";
+
 const UNITS: Record<string, number> = {
   zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
   ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
@@ -133,4 +135,17 @@ export function explanationToShow(
   if (modelText === undefined) return { text: template, source: "template" };
   const check = checkNumbers(modelText, allowed, itemNames);
   return check.ok ? { text: modelText, source: "model", check } : { text: template, source: "template", check };
+}
+
+// Short text the model writes for a customer (a note on one count, an item not
+// on the list) has no computed numbers to check against, so it must not touch
+// money at all: a currency sign or code, or a word about prices or paying, and
+// it is not shown. Like the check above, it errs on the side of rejecting.
+const MONEY_WORDS =
+  /\b(?:euros?|cents?|pence|penny|pennies|pounds?|quid|dollars?|bucks?|prices?|priced|costs?|costing|pay|pays|paying|paid|payment|charged?|charges?|refund(?:s|ed)?|totals?|free|cheap|discount(?:s|ed)?|worth|owe[sd]?)\b/i;
+
+/** True when `text` says anything about money. */
+export function mentionsMoney(text: string): boolean {
+  const normal = text.normalize("NFKC");
+  return /\p{Sc}/u.test(normal) || new RegExp(`\\b(?:${CURRENCIES.join("|")})\\b`, "i").test(normal) || MONEY_WORDS.test(normal);
 }

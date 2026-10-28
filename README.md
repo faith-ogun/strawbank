@@ -29,7 +29,7 @@
   <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/eval_E4-14_properties,_0_failures-2ea043" alt="eval E4: 14 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E4-16_properties,_0_failures-2ea043" alt="eval E4: 16 properties, 0 failures">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
 </p>
@@ -82,8 +82,8 @@ because if the same input must always give the same answer, a guess is not good 
 Even the AI's dusk explanation is checked: any number in it that code did not compute, and
 the AI's words are replaced by a plain template.
 
-That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 14
-properties, each tried against generated cases (fast-check), on **12,002 cases with 0
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 16
+properties, each tried against generated cases (fast-check), on **14,002 cases with 0
 failures** (scorecard `eval/results/2026-10-28.json`).
 
 | Id | The property |
@@ -99,6 +99,8 @@ failures** (scorecard `eval/results/2026-10-28.json`).
 | E4.5 | The AI's text never introduces a number that is not in the computed reconciliation |
 | E4.5b | Text that uses only computed numbers passes the check |
 | E4.5c | Whatever the AI writes, the text shown contains only computed numbers |
+| E4.5d | No note the AI writes about a basket reaches the customer if it mentions money |
+| E4.5e | A plain counting note, with no money in it, is shown as written |
 | E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowed tools |
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |

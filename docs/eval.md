@@ -37,6 +37,11 @@ tuning).
 the photo: the same bar a recount must clear before the agent may refund. The scorecard
 keeps every model reply under `cases`, so a wrong count can be checked photo by photo.
 
+E1 measures the count as the customer gets it: the fast model (`GEMINI_FAST_MODEL`), its
+thinking level and photo detail, all set in `src/lib/ai/count.ts`. A pack that holds fewer
+than its unit (five eggs in a box of six) is still one of that item; its truth file says
+so, and the count should come back with a note and below sure.
+
 ## E4: money invariants
 
 Each property is checked against 1,000 generated cases by default (fast-check). The seed
@@ -60,6 +65,8 @@ EVAL_SEED=123456 npm run eval
 | E4.5 | The model's text never introduces a number that is not in the computed reconciliation |
 | E4.5b | Text that uses only computed numbers passes the check |
 | E4.5c | Whatever the model writes, the text shown contains only computed numbers |
+| E4.5d | No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money |
+| E4.5e | A plain counting note, with no money in it, is shown as written |
 | E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools |
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |
