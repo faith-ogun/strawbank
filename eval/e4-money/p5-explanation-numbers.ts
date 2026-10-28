@@ -237,7 +237,7 @@ function talksMoney(text: string): boolean {
   return MONEY_MARKERS.some((m) => (/\p{L}/u.test(m) ? words.includes(m.toLowerCase()) : text.includes(m)));
 }
 
-const KEYS = ["eggs-6", "onions-bag", "potatoes-bag", "jam"];
+const KEYS = ["egg", "onions-bag", "potatoes-bag", "jam"];
 const anyNoteArb = fc.oneof(plainNoteArb, moneyNoteArb);
 const replyArb: fc.Arbitrary<CountReplyFromModel> = fc.record({
   items: fc.array(
@@ -262,9 +262,9 @@ const countTextHasNoMoney = fc.property(replyArb, (reply) => {
   }
 });
 
-const plainNotesKept = fc.property(plainNoteArb, fc.integer({ min: 1, max: 5 }), (note, n) => {
-  const count = readReply(KEYS, { items: [{ key: "eggs-6", count: n, confidence: 1, note }], unlisted: [], problem: null });
-  assert(count.notes["eggs-6"] === note, `the plain note "${note}" was hidden`);
+const plainNotesKept = fc.property(plainNoteArb, fc.integer({ min: 0, max: 5 }), (note, n) => {
+  const count = readReply(KEYS, { items: [{ key: "egg", count: n, confidence: 1, note }], unlisted: [], problem: null });
+  assert(count.notes.egg === note, `the plain note "${note}" was hidden`);
 });
 
 export const p5 = [

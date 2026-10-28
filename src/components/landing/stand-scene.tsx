@@ -179,7 +179,7 @@ function priceCard(fonts: Fonts) {
     ctx.bezierCurveTo(110, 104, 160, 116, 206, 106);
     ctx.stroke();
     const lines = [
-      ["Eggs (6)", "€3.50"],
+      ["Eggs, each", "€0.60"],
       ["Onions, bag", "€2"],
       ["Potatoes, bag", "€3"],
       ["Jam", "€4.50"],
@@ -358,14 +358,19 @@ function buildWorld(fonts: Fonts) {
   world.add(track(eggBox([-0.85, T + 0.045, 0.2]), until(STEP.dusk)));
   world.add(track(eggBox([-0.85, T + 0.137, 0.2]), until(STEP.customer)));
   world.add(track(eggBox([-0.5, T + 0.045, 0.24]), until(STEP.dusk)));
-  const open = new THREE.Group();
-  open.add(mesh(box(0.3, 0.05, 0.14, 0.012), mat(C.kraft, { roughness: 0.95 }), [0, 0.025, 0]));
-  open.add(mesh(box(0.3, 0.012, 0.14, 0.005), mat(C.kraft, { roughness: 0.95 }), [0, 0.1, -0.1], [-1.25, 0, 0]));
-  for (let i = 0; i < 6; i++) {
-    const egg = mesh(new THREE.SphereGeometry(0.03, 20, 14), mat(i % 3 === 1 ? C.eggBrown : C.eggCream, { roughness: 0.6 }), [-0.09 + (i % 3) * 0.09, 0.07, i < 3 ? -0.032 : 0.032]);
-    egg.scale.y = 1.28;
-    open.add(egg);
-  }
+  // Eggs are sold one by one, so a box on show, or in a basket, stands open.
+  const openEggBox = () => {
+    const g = new THREE.Group();
+    g.add(mesh(box(0.3, 0.05, 0.14, 0.012), mat(C.kraft, { roughness: 0.95 }), [0, 0.025, 0]));
+    g.add(mesh(box(0.3, 0.012, 0.14, 0.005), mat(C.kraft, { roughness: 0.95 }), [0, 0.1, -0.1], [-1.25, 0, 0]));
+    for (let i = 0; i < 6; i++) {
+      const egg = mesh(new THREE.SphereGeometry(0.03, 20, 14), mat(i % 3 === 1 ? C.eggBrown : C.eggCream, { roughness: 0.6 }), [-0.09 + (i % 3) * 0.09, 0.07, i < 3 ? -0.032 : 0.032]);
+      egg.scale.y = 1.28;
+      g.add(egg);
+    }
+    return g;
+  };
+  const open = openEggBox();
   open.position.set(-0.6, T, -0.02);
   world.add(open);
 
@@ -481,7 +486,8 @@ function buildWorld(fonts: Fonts) {
   basket.add(mesh(new THREE.CircleGeometry(0.17, 32), mat(C.wicker), [0, 0.003, 0], [-Math.PI / 2, 0, 0]));
   basket.add(mesh(new THREE.TorusGeometry(0.21, 0.014, 8, 40), mat(C.woodMid), [0, 0.17, 0], [Math.PI / 2, 0, 0]));
   basket.add(mesh(new THREE.TorusGeometry(0.2, 0.012, 8, 32, Math.PI), mat(C.woodMid), [0, 0.17, 0]));
-  const inBasket = eggBox([-0.05, 0.13, 0.02]);
+  const inBasket = openEggBox();
+  inBasket.position.set(-0.05, 0.085, 0.02);
   inBasket.rotation.y = 0.5;
   inBasket.scale.setScalar(0.85);
   basket.add(inBasket);

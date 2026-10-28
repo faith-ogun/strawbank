@@ -38,9 +38,11 @@ the photo: the same bar a recount must clear before the agent may refund. The sc
 keeps every model reply under `cases`, so a wrong count can be checked photo by photo.
 
 E1 measures the count as the customer gets it: the fast model (`GEMINI_FAST_MODEL`), its
-thinking level and photo detail, all set in `src/lib/ai/count.ts`. A pack that holds fewer
-than its unit (five eggs in a box of six) is still one of that item; its truth file says
-so, and the count should come back with a note and below sure.
+thinking level and photo detail, all set in `src/lib/ai/count.ts`. Goods are counted in
+the units the list sells: eggs sold singly are counted egg by egg, whatever box they are
+in, and a closed box should come back with a note asking for it to be opened. A pack sold
+as one item that holds fewer than its unit (five eggs in a box of six) is still one, with a
+note and below sure.
 
 ## E4: money invariants
 

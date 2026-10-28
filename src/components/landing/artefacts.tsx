@@ -30,7 +30,7 @@ function Tick() {
 }
 
 const PRICES = [
-  { chalk: "Eggs (6)", read: "Eggs, box of 6", price: "3.50" },
+  { chalk: "Eggs, each", read: "Eggs, each", price: "0.60" },
   { chalk: "Onions, bag", read: "Onions, bag", price: "2.00" },
   { chalk: "Potatoes, bag", read: "Potatoes, bag", price: "3.00" },
   { chalk: "Jam", read: "Jam, jar", price: "4.50" },
@@ -81,8 +81,8 @@ export function RefundArtefact() {
         <p className="text-center text-ink-3">receipt · 11:16</p>
         <div className="mt-3 border-t border-dashed border-line-2 pt-2">
           <p className="flex justify-between">
-            <span>Eggs (6) 1 × 3.50</span>
-            <span>3.50</span>
+            <span>Eggs 6 × 0.60</span>
+            <span>3.60</span>
           </p>
           <p className="flex justify-between">
             <span>Onions 2 × 2.00</span>
@@ -91,7 +91,7 @@ export function RefundArtefact() {
         </div>
         <p className="mt-2 flex justify-between border-t border-dashed border-line-2 pt-2 font-semibold">
           <span>Total</span>
-          <span>€7.50</span>
+          <span>€7.60</span>
         </p>
         <p className="mt-1 text-ink-3">Paid with PayPal</p>
         <p className="mt-3 font-sans text-sm font-semibold text-ink underline decoration-straw decoration-2 underline-offset-4">
@@ -136,7 +136,7 @@ export function RefundArtefact() {
 }
 
 const DUSK = [
-  { item: "Eggs (6)", taken: "9", paid: "9", gap: null },
+  { item: "Eggs", taken: "24", paid: "24", gap: null },
   { item: "Onions, bag", taken: "7", paid: "6", gap: "1 · €2.00" },
   { item: "Potatoes, bag", taken: "5", paid: "5", gap: null },
   { item: "Jam", taken: null, paid: "3", gap: null },

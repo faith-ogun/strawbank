@@ -15,7 +15,7 @@ export const DEMO_STAND: Stand = {
 };
 
 export const DEMO_CATALOGUE: CatalogueItem[] = [
-  { key: "eggs-6", name: "Eggs (6)", unitMinor: 350, looks: "a box of six eggs" },
+  { key: "egg", name: "Eggs, each", unitMinor: 60, looks: "one egg; sold loose or in a cardboard egg box of any brand, so a closed egg box holds eggs that cannot be counted" },
   { key: "onions-bag", name: "Onions, bag", unitMinor: 200, looks: "onions in a net or tied bundle; one bag is one item" },
   { key: "potatoes-bag", name: "Potatoes, bag", unitMinor: 300, looks: "potatoes in a paper bag; one bag is one item" },
   { key: "jam", name: "Jam", unitMinor: 450, looks: "a jar with a cloth or metal lid, label turned away" },

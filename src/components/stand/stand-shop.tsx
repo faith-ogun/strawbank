@@ -169,7 +169,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
             </button>
           </p>
           <p className="mt-6 text-center font-mono text-[0.6875rem] text-ink-3">
-            Point the camera at your basket, not at people. The photo is only used to count.
+            Open any box so what is inside shows. Point the camera at your basket, not at people. The photo is only used to count.
           </p>
         </section>
       )}

@@ -10,11 +10,11 @@ import { formatMoney, toDecimal } from "@/lib/money";
 import { MAX_QUANTITY, buildLines, orderTotalMinor } from "@/lib/orders";
 
 /** The two items in the example basket, at the demo stand's own prices. */
-const CATALOGUE = DEMO_CATALOGUE.filter((item) => item.key === "eggs-6" || item.key === "onions-bag");
+const CATALOGUE = DEMO_CATALOGUE.filter((item) => item.key === "egg" || item.key === "onions-bag");
 
 /** What the AI counted in the basket photo, and how sure it was. An example. */
 const COUNTED: Record<string, { count: number; sure: boolean }> = {
-  "eggs-6": { count: 1, sure: true },
+  egg: { count: 6, sure: true },
   "onions-bag": { count: 2, sure: false },
 };
 
