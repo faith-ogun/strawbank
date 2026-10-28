@@ -51,6 +51,7 @@ EVAL_SEED=123456 npm run eval
 |---|---|
 | E4.1 | Order total = sum of lines (quantity x price) = PayPal `item_total`, in minor units |
 | E4.1b | A basket with an unknown item or a bad quantity never becomes an order |
+| E4.1c | The PayPal SDK request carries the order body's amounts and lines unchanged |
 | E4.2 | A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim |
 | E4.2b | Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured |
 | E4.3 | The same refund request never produces two refunds |

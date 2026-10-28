@@ -29,15 +29,16 @@
   <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/eval_E4-11_properties,_0_failures-2ea043" alt="eval E4: 11 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E4-12_properties,_0_failures-2ea043" alt="eval E4: 12 properties, 0 failures">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
 </p>
 
 ---
 
-> **Status: in development.** The money code is written and tested (eval E4, below); the
-> customer, grower and ledger flows are being built. This README only claims what works, and
+> **Status: in development.** The money code is written and tested (eval E4, below), and a
+> sandbox order with one line per item is created and captured through the PayPal Server SDK.
+> The customer, grower and ledger pages are being built. This README only claims what works, and
 > every result in it comes from `npm run eval`.
 
 ---
@@ -80,14 +81,15 @@ because if the same input must always give the same answer, a guess is not good 
 Even the AI's dusk explanation is checked: any number in it that code did not compute, and
 the AI's words are replaced by a plain template.
 
-That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 11
-properties, each tried against generated cases (fast-check), on **10,001 cases with 0
-failures** (scorecard `eval/results/2026-10-24.json`).
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 12
+properties, each tried against generated cases (fast-check), on **11,001 cases with 0
+failures** (scorecard `eval/results/2026-10-28.json`).
 
 | Id | The property |
 |---|---|
 | E4.1 | Order total = sum of lines (quantity x price) = PayPal `item_total`, in minor units |
 | E4.1b | A basket with an unknown item or a bad quantity never becomes an order |
+| E4.1c | The PayPal SDK request carries the order body's amounts and lines unchanged |
 | E4.2 | A refund never exceeds what was paid minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim |
 | E4.2b | Under repeated, concurrent and failing requests, refunds never exceed what was captured |
 | E4.3 | The same refund request never produces two refunds |
@@ -141,6 +143,7 @@ credentials. Hosted demo link and test logins: to come.
 |---|---|
 | `src/lib/money.ts` | money as whole minor units; decimal strings only at the edges |
 | `src/lib/orders.ts` | counts x confirmed prices, order lines, the Orders v2 body |
+| `src/lib/paypal/` | the PayPal Server SDK client (sandbox only), and order create, capture and get |
 | `src/lib/refunds.ts` | refund amount, cap and who decides; at most one refund per request |
 | `src/lib/ledger.ts` | the webhook ledger; repeated or late webhooks change nothing |
 | `src/lib/reconcile.ts` | taken, paid and gap per item at dusk |

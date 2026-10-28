@@ -247,8 +247,8 @@ function MoneyRule() {
 
         <div className="mt-14 grid gap-px overflow-hidden rounded-[22px] border border-white/15 bg-white/15 sm:grid-cols-3">
           {[
-            { n: "11", what: "money properties, each a rule that must always hold" },
-            { n: "10,001", what: "generated cases tried against them" },
+            { n: "12", what: "money properties, each a rule that must always hold" },
+            { n: "11,001", what: "generated cases tried against them" },
             { n: "0", what: "failures" },
           ].map((s) => (
             <div key={s.what} className="bg-ink p-6">
@@ -258,7 +258,7 @@ function MoneyRule() {
           ))}
         </div>
         <p className="mt-4 font-mono text-[0.6875rem] text-white/50">
-          Eval E4 scorecard, 26 Oct 2026. Bugs planted in the money code on purpose each made a property fail.
+          Eval E4 scorecard, 28 Oct 2026. Bugs planted in the money code on purpose each made a property fail.
         </p>
       </div>
     </section>
