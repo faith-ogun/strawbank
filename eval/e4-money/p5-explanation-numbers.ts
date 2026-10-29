@@ -237,7 +237,7 @@ function talksMoney(text: string): boolean {
   return MONEY_MARKERS.some((m) => (/\p{L}/u.test(m) ? words.includes(m.toLowerCase()) : text.includes(m)));
 }
 
-const KEYS = ["egg", "onions-bag", "potatoes-bag", "jam"];
+const KEYS = ["egg", "onion", "potato", "jam"];
 const anyNoteArb = fc.oneof(plainNoteArb, moneyNoteArb);
 const replyArb: fc.Arbitrary<CountReplyFromModel> = fc.record({
   items: fc.array(

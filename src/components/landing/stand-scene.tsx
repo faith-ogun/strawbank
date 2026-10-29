@@ -102,7 +102,6 @@ const C = {
   onion: "#c98a3e",
   onion2: "#b5622c",
   potato: "#c9a066",
-  bag: "#cfae7d",
   jam: "#9e1f3a",
   label: "#f6efe0",
   wicker: "#c9a46a",
@@ -180,9 +179,9 @@ function priceCard(fonts: Fonts) {
     ctx.stroke();
     const lines = [
       ["Eggs, each", "€0.60"],
-      ["Onions, bag", "€2"],
-      ["Potatoes, bag", "€3"],
-      ["Jam", "€4.50"],
+      ["Onions, each", "€0.30"],
+      ["Potatoes, each", "€0.20"],
+      ["Jam, jar", "€4.50"],
     ];
     ctx.font = `400 40px ${fonts.hand}`;
     lines.forEach(([item, price], i) => {
@@ -347,38 +346,37 @@ function buildWorld(fonts: Fonts) {
   const cardMats = [wood, wood, wood, wood, new THREE.MeshStandardMaterial({ map: cardPaint.texture, roughness: 0.9 }), wood];
   world.add(mesh(new THREE.BoxGeometry(0.6, 0.49, 0.025), cardMats, [-0.62, 1.1, -0.37], [-0.1, 0, 0]));
 
-  // Eggs: closed boxes, and one open box on show.
-  const eggBox = (pos: V3) => {
+  // Everything is sold one at a time, so it all lies loose: eggs in open trays,
+  // onions and potatoes in slatted crates.
+  const egg = (pos: V3, i: number) => {
+    const e = mesh(new THREE.SphereGeometry(0.03, 20, 14), mat(i % 3 === 1 ? C.eggBrown : C.eggCream, { roughness: 0.6 }), pos);
+    e.scale.y = 1.28;
+    return e;
+  };
+  const eggTray = (pos: V3) => {
     const g = new THREE.Group();
-    g.add(mesh(box(0.32, 0.09, 0.15, 0.018), mat(C.kraft, { roughness: 0.95 })));
-    g.add(mesh(box(0.12, 0.004, 0.08, 0.002), mat(C.label), [0, 0.046, 0]));
+    g.add(mesh(box(0.3, 0.035, 0.2, 0.01), mat(C.kraft, { roughness: 0.95 }), [0, 0.0175, 0]));
+    for (let i = 0; i < 9; i++) g.add(egg([-0.09 + (i % 3) * 0.09, 0.06, -0.06 + Math.floor(i / 3) * 0.06], i));
     g.position.set(...pos);
     return g;
   };
-  world.add(track(eggBox([-0.85, T + 0.045, 0.2]), until(STEP.dusk)));
-  world.add(track(eggBox([-0.85, T + 0.137, 0.2]), until(STEP.customer)));
-  world.add(track(eggBox([-0.5, T + 0.045, 0.24]), until(STEP.dusk)));
-  // Eggs are sold one by one, so a box on show, or in a basket, stands open.
+  world.add(eggTray([-0.62, T, -0.04]));
+  world.add(track(eggTray([-0.85, T, 0.24]), until(STEP.dusk)));
+  world.add(track(eggTray([-0.5, T, 0.26]), until(STEP.customer)));
+  // A customer's reused egg box, open so each egg shows.
   const openEggBox = () => {
     const g = new THREE.Group();
     g.add(mesh(box(0.3, 0.05, 0.14, 0.012), mat(C.kraft, { roughness: 0.95 }), [0, 0.025, 0]));
     g.add(mesh(box(0.3, 0.012, 0.14, 0.005), mat(C.kraft, { roughness: 0.95 }), [0, 0.1, -0.1], [-1.25, 0, 0]));
-    for (let i = 0; i < 6; i++) {
-      const egg = mesh(new THREE.SphereGeometry(0.03, 20, 14), mat(i % 3 === 1 ? C.eggBrown : C.eggCream, { roughness: 0.6 }), [-0.09 + (i % 3) * 0.09, 0.07, i < 3 ? -0.032 : 0.032]);
-      egg.scale.y = 1.28;
-      g.add(egg);
-    }
+    for (let i = 0; i < 6; i++) g.add(egg([-0.09 + (i % 3) * 0.09, 0.07, i < 3 ? -0.032 : 0.032], i));
     return g;
   };
-  const open = openEggBox();
-  open.position.set(-0.6, T, -0.02);
-  world.add(open);
 
-  // Onions, tied in bundles of three, in a slatted crate.
   const crate = (pos: V3, w: number, d: number) => {
     const g = new THREE.Group();
     g.add(mesh(box(w, 0.02, d, 0.006), woodMid, [0, 0.01, 0]));
-    for (const y of [0.04, 0.1]) {
+    // One low slat, so the loose goods show over it.
+    for (const y of [0.04]) {
       g.add(mesh(box(w, 0.045, 0.018, 0.006), woodMid, [0, y, d / 2]));
       g.add(mesh(box(w, 0.045, 0.018, 0.006), woodMid, [0, y, -d / 2]));
       g.add(mesh(box(0.018, 0.045, d, 0.006), woodMid, [w / 2, y, 0]));
@@ -387,45 +385,36 @@ function buildWorld(fonts: Fonts) {
     g.position.set(...pos);
     return g;
   };
-  world.add(crate([0, T, 0.1], 0.46, 0.32));
-  const onionBundle = (pos: V3) => {
-    const g = new THREE.Group();
-    for (let i = 0; i < 3; i++) {
-      const a = (i / 3) * Math.PI * 2 + 0.4;
-      const onion = mesh(new THREE.SphereGeometry(0.04, 18, 14), mat(rand() > 0.5 ? C.onion : C.onion2, { roughness: 0.55 }), [Math.cos(a) * 0.036, 0, Math.sin(a) * 0.036]);
-      onion.scale.y = 0.88;
-      onion.add(mesh(new THREE.ConeGeometry(0.012, 0.03, 8), mat(C.onion2), [0, 0.045, 0]));
-      g.add(onion);
-    }
-    g.add(mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.05, 8), mat(C.straw3), [0, 0.05, 0]));
-    g.position.set(...pos);
-    return g;
+  const onion = (pos: V3) => {
+    const o = mesh(new THREE.SphereGeometry(0.04, 18, 14), mat(rand() > 0.5 ? C.onion : C.onion2, { roughness: 0.55 }), pos);
+    o.scale.y = 0.88;
+    o.rotation.set((rand() - 0.5) * 0.5, rand() * 3, (rand() - 0.5) * 0.5);
+    o.add(mesh(new THREE.ConeGeometry(0.012, 0.03, 8), mat(C.onion2), [0, 0.045, 0]));
+    return o;
   };
-  const bundles: [number, number, number][] = [
-    [-0.13, -0.07, 99],
-    [0, -0.07, 99],
-    [0.13, -0.07, STEP.dusk],
-    [-0.07, 0.07, STEP.dusk],
-    [0.08, 0.07, STEP.customer],
-  ];
-  for (const [x, z, gone] of bundles) world.add(track(onionBundle([x, T + 0.06, 0.1 + z]), until(gone)));
+  const potato = (pos: V3) => {
+    const t = mesh(new THREE.SphereGeometry(0.035, 14, 10), mat(C.potato, { roughness: 0.95 }), pos);
+    t.scale.set(1.2, 0.8, 0.95);
+    t.rotation.y = rand() * 3;
+    return t;
+  };
+  /** Which loose goods leave the shelf, and when: the customer's, then the day's. */
+  const goneAt = (i: number, customer: number[], day: number[]) =>
+    customer.includes(i) ? until(STEP.customer) : day.includes(i) ? until(STEP.dusk) : () => true;
 
-  // Potatoes in paper bags.
-  const potatoBag = (pos: V3) => {
-    const g = new THREE.Group();
-    g.add(mesh(box(0.14, 0.17, 0.1, 0.01), mat(C.bag, { roughness: 1 }), [0, 0.085, 0]));
-    g.add(mesh(box(0.146, 0.025, 0.106, 0.008), mat(C.kraft, { roughness: 1 }), [0, 0.16, 0]));
-    for (let i = 0; i < 3; i++) {
-      const p = mesh(new THREE.SphereGeometry(0.035, 14, 10), mat(C.potato, { roughness: 0.95 }), [-0.035 + i * 0.035, 0.18, (rand() - 0.5) * 0.03]);
-      p.scale.set(1.2, 0.8, 0.95);
-      p.rotation.y = rand() * 3;
-      g.add(p);
-    }
-    g.position.set(...pos);
-    return g;
-  };
-  world.add(track(potatoBag([0.36, T, 0.25]), () => true));
-  world.add(track(potatoBag([0.53, T, 0.27]), until(STEP.dusk)));
+  world.add(crate([0, T, 0.1], 0.46, 0.32));
+  for (let i = 0; i < 12; i++) {
+    const x = -0.165 + (i % 4) * 0.11 + (rand() - 0.5) * 0.02;
+    const z = 0.0 + Math.floor(i / 4) * 0.1 + (rand() - 0.5) * 0.02;
+    world.add(track(onion([x, T + 0.06, z]), goneAt(i, [9, 10, 11], [1, 4, 6, 8])));
+  }
+
+  world.add(crate([0.45, T, 0.24], 0.3, 0.2));
+  for (let i = 0; i < 6; i++) {
+    const x = 0.36 + (i % 3) * 0.09 + (rand() - 0.5) * 0.015;
+    const z = 0.195 + Math.floor(i / 3) * 0.09 + (rand() - 0.5) * 0.015;
+    world.add(track(potato([x, T + 0.05, z]), goneAt(i, [3, 4, 5], [0, 2])));
+  }
 
   // Jam jars with cloth caps.
   const capPaint = painted(64, 64, (ctx) => {
@@ -491,7 +480,8 @@ function buildWorld(fonts: Fonts) {
   inBasket.rotation.y = 0.5;
   inBasket.scale.setScalar(0.85);
   basket.add(inBasket);
-  basket.add(onionBundle([0.09, 0.15, -0.04]));
+  for (const pos of [[0.1, 0.14, -0.08], [0.15, 0.14, 0.02], [0.08, 0.2, -0.02]] as V3[]) basket.add(onion(pos));
+  for (const pos of [[0.02, 0.13, -0.13], [0.06, 0.13, 0.12], [0.13, 0.19, 0.08], [-0.03, 0.18, -0.08]] as V3[]) basket.add(potato(pos));
   basket.position.set(0.45, 0, 1.15);
   basket.rotation.y = -0.4;
   world.add(track(basket, (s) => s === STEP.customer || s === STEP.wrong));

@@ -39,10 +39,9 @@ keeps every model reply under `cases`, so a wrong count can be checked photo by 
 
 E1 measures the count as the customer gets it: the fast model (`GEMINI_FAST_MODEL`), its
 thinking level and photo detail, all set in `src/lib/ai/count.ts`. Goods are counted in
-the units the list sells: eggs sold singly are counted egg by egg, whatever box they are
-in, and a closed box should come back with a note asking for it to be opened. A pack sold
-as one item that holds fewer than its unit (five eggs in a box of six) is still one, with a
-note and below sure.
+the units the list sells, and every item is sold one at a time: each egg, onion, potato
+and jar is counted on its own, whatever box, bag or tray it is in. A closed box or bag
+should come back with a note asking for it to be opened.
 
 ## E4: money invariants
 
@@ -101,9 +100,9 @@ nothing is lost to rounding.
 {
   "currency": "EUR",
   "items": [
-    { "key": "eggs-6", "name": "Free-range eggs (6)", "looks": "white box, handwritten lid" },
-    { "key": "jam-strawberry", "name": "Strawberry jam", "looks": "small jar, red gingham cover" },
-    { "key": "rhubarb", "name": "Rhubarb bunch", "looks": "tied with string" }
+    { "key": "egg", "name": "Eggs, each", "looks": "brown and white, often in a reused box" },
+    { "key": "jam-strawberry", "name": "Strawberry jam, jar", "looks": "small jar, red gingham cover" },
+    { "key": "potato", "name": "Potatoes, each", "looks": "loose, or in a paper bag" }
   ]
 }
 ```
@@ -114,7 +113,7 @@ nothing is lost to rounding.
 
 ```json
 {
-  "counts": { "eggs-6": 1, "jam-strawberry": 2 },
+  "counts": { "egg": 5, "jam-strawberry": 2 },
   "tags": ["hand", "dim", "partly-hidden"],
   "note": "second jar behind the egg box"
 }
@@ -127,7 +126,7 @@ that is not in `items.json` goes in `"unlisted": [{ "what": "lemon", "count": 1 
 ### Shelf: `eval/truth/shelves/<id>.json`
 
 ```json
-{ "day": "day-03", "time": "morning", "counts": { "eggs-6": 12, "jam-strawberry": 8, "rhubarb": 5 } }
+{ "day": "day-03", "time": "morning", "counts": { "egg": 36, "jam-strawberry": 8, "potato": 40 } }
 ```
 
 Ten simulated days, each with a morning and a dusk photo: `day-01` to `day-10`.
@@ -138,7 +137,7 @@ Ten simulated days, each with a morning and a dusk photo: `day-01` to `day-10`.
 {
   "currency": "EUR",
   "lines": [
-    { "text": "Eggs (6)", "item": "eggs-6", "price": "3.50" },
+    { "text": "Eggs, each", "item": "egg", "price": "0.60" },
     { "text": "Jam", "item": "jam-strawberry", "price": "4.00" }
   ]
 }

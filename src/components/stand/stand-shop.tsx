@@ -27,7 +27,7 @@ type Props = { standId: string; standName: string; currency: Currency; catalogue
 
 const zeros = (catalogue: CatalogueItem[]) => Object.fromEntries(catalogue.map((i) => [i.key, 0]));
 
-/** "this box holds 5 eggs, not 6" -> "This box holds 5 eggs, not 6." */
+/** "the box is closed: open it" -> "The box is closed: open it." */
 const asSentence = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}${/[.!?]$/.test(text) ? "" : "."}`;
 
 async function readError(response: Response): Promise<string> {
@@ -169,7 +169,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
             </button>
           </p>
           <p className="mt-6 text-center font-mono text-[0.6875rem] text-ink-3">
-            Open any box so what is inside shows. Point the camera at your basket, not at people. The photo is only used to count.
+            Open any box or bag so each item shows. Point the camera at your basket, not at people. The photo is only used to count.
           </p>
         </section>
       )}

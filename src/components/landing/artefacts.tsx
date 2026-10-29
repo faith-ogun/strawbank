@@ -31,9 +31,9 @@ function Tick() {
 
 const PRICES = [
   { chalk: "Eggs, each", read: "Eggs, each", price: "0.60" },
-  { chalk: "Onions, bag", read: "Onions, bag", price: "2.00" },
-  { chalk: "Potatoes, bag", read: "Potatoes, bag", price: "3.00" },
-  { chalk: "Jam", read: "Jam, jar", price: "4.50" },
+  { chalk: "Onions, each", read: "Onions, each", price: "0.30" },
+  { chalk: "Potatoes, each", read: "Potatoes, each", price: "0.20" },
+  { chalk: "Jam, jar", read: "Jam, jar", price: "4.50" },
 ];
 
 export function PriceCardArtefact() {
@@ -85,13 +85,17 @@ export function RefundArtefact() {
             <span>3.60</span>
           </p>
           <p className="flex justify-between">
-            <span>Onions 2 × 2.00</span>
-            <span>4.00</span>
+            <span>Onions 4 × 0.30</span>
+            <span>1.20</span>
+          </p>
+          <p className="flex justify-between">
+            <span>Potatoes 4 × 0.20</span>
+            <span>0.80</span>
           </p>
         </div>
         <p className="mt-2 flex justify-between border-t border-dashed border-line-2 pt-2 font-semibold">
           <span>Total</span>
-          <span>€7.60</span>
+          <span>€5.60</span>
         </p>
         <p className="mt-1 text-ink-3">Paid with PayPal</p>
         <p className="mt-3 font-sans text-sm font-semibold text-ink underline decoration-straw decoration-2 underline-offset-4">
@@ -101,7 +105,7 @@ export function RefundArtefact() {
 
       <div className="space-y-3">
         <div className="ml-6 rounded-2xl rounded-tr-sm bg-paper px-4 py-3 text-sm text-ink">
-          I took one bag of onions, not two.
+          I took three onions, not four.
           <p className="mt-1 font-mono text-[0.6875rem] text-ink-3">customer · 11:20</p>
         </div>
         <div className="rounded-2xl border border-ink bg-white p-4 shadow-tag">
@@ -112,12 +116,12 @@ export function RefundArtefact() {
           <ul className="mt-3 space-y-2 text-sm text-ink">
             <li className="flex gap-2">
               <Tick />
-              <span>Recounted the basket photo: 1 bag of onions, sure</span>
+              <span>Recounted the basket photo: 3 onions, sure</span>
             </li>
             <li className="flex gap-2">
               <Tick />
               <span>
-                Refund, worked out by code: <span className="font-mono">1 × €2.00 = €2.00</span>
+                Refund, worked out by code: <span className="font-mono">1 × €0.30 = €0.30</span>
               </span>
             </li>
             <li className="flex gap-2">
@@ -125,7 +129,7 @@ export function RefundArtefact() {
               <span>Within the grower&apos;s limit of €5.00</span>
             </li>
           </ul>
-          <p className="mt-3 inline-block rounded-full bg-mint px-3 py-1 text-sm font-semibold text-ink">Refunded €2.00 through PayPal</p>
+          <p className="mt-3 inline-block rounded-full bg-mint px-3 py-1 text-sm font-semibold text-ink">Refunded €0.30 through PayPal</p>
           <p className="mt-3 border-t border-line pt-2 font-mono text-[0.6875rem] text-ink-3">
             Over the limit, or a photo that disagrees: the grower decides.
           </p>
@@ -137,8 +141,8 @@ export function RefundArtefact() {
 
 const DUSK = [
   { item: "Eggs", taken: "24", paid: "24", gap: null },
-  { item: "Onions, bag", taken: "7", paid: "6", gap: "1 · €2.00" },
-  { item: "Potatoes, bag", taken: "5", paid: "5", gap: null },
+  { item: "Onions", taken: "30", paid: "28", gap: "2 · €0.60" },
+  { item: "Potatoes", taken: "40", paid: "40", gap: null },
   { item: "Jam", taken: null, paid: "3", gap: null },
 ];
 
@@ -180,7 +184,7 @@ export function DuskArtefact() {
         </tbody>
       </table>
       <div className="mt-4 rounded-2xl bg-paper p-4 text-[0.9375rem] leading-relaxed text-ink">
-        Eggs and potatoes were all paid for. 7 bags of onions were taken and 6 paid for, so 1 bag, worth €2.00, is
+        Eggs and potatoes were all paid for. 30 onions were taken and 28 paid for, so 2, worth €0.60, are
         unaccounted for. The jam count is uncertain, so it is not called missing: check the shelf photo.
       </div>
       <p className="mt-3 flex gap-2 font-mono text-[0.6875rem] leading-relaxed text-ink-3">

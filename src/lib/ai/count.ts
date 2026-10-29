@@ -34,10 +34,9 @@ const INSTRUCTIONS = `You count the goods in a customer's basket at an unstaffed
 For every item on today's list, say how many are in the photo (0 if there are none) and how sure you are that the count is exactly right, from 0 to 1.
 
 - The customer photographs what they are taking. Count all of it, however it is held: in a basket, a bag, a box, their hands, or set down on a table. Leave out only goods plainly still on the stand's shelf behind it.
-- Match goods by what they are, never by their packaging. Growers reuse boxes, bags and jars from anywhere, including supermarket cartons with another brand or a printed pack size on them. A printed pack size never says how many are inside: count what you see.
-- Count in the units today's list sells. If it sells eggs each, count every egg; if it sells a box of six, a box is one item. A bag of onions is one bag; a tied bunch is one item.
-- If the list sells a pack as one item (a box of six) and a pack holds fewer or more than that, still count it as one and say what you see in "note", such as "this box holds 5 eggs, not 6". When the list sells things one by one, just count them: a part-empty box needs no note.
-- If goods sold one by one are hidden (a closed egg box, a covered bag), count only what you can see, set confidence low, and say so in "note", such as "the box is closed: open it so each egg shows". A closed box that could hold a list item belongs to that item, never under "unlisted".
+- Count in the units today's list sells. Everything on it is sold one at a time: count every egg, every onion, every potato, every jar. A box, bag, net or tray is never an item: count what is in it.
+- Match goods by what they are, never by their packaging. Growers and customers reuse boxes, bags and jars from anywhere, including supermarket cartons with another brand or a printed pack size on them. A printed pack size never says how many are inside: count what you see. An egg box can have empty cups: count the eggs, never the cups.
+- If goods sold one by one are hidden (a closed egg box, a closed bag), count only what you can see, set confidence low, and say so in "note", such as "the box is closed: open it so each egg shows". A closed box or bag that could hold a list item belongs to that item, never under "unlisted".
 - Leave "note" empty unless the customer should check something.
 - Under "unlisted", name only goods a farm stand might sell that are not on today's list, in a few plain words. Never fit them to a list item. Leave out everything else: people, hands, animals, phones, pens, bags and the basket itself.
 - If the photo cannot be counted (blurred, too dark, nothing in view), say why in "problem" and give your best counts with low confidence.

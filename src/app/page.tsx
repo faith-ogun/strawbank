@@ -171,7 +171,7 @@ const chapters = [
     </div>
   </Chapter>,
 
-  <Chapter key="wrong" eyebrow="11:20 · Something's wrong" title={<>&ldquo;I took one bag of onions, not two.&rdquo;</>}>
+  <Chapter key="wrong" eyebrow="11:20 · Something's wrong" title={<>&ldquo;I took three onions, not four.&rdquo;</>}>
     <Body>
       Every receipt has a &ldquo;something&apos;s wrong&rdquo; link. The agent recounts the stored basket photo, and code
       works out the refund and its cap. If the photo backs the claim and the amount is within the grower&apos;s limit, the
