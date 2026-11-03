@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-06",
+  "scenario": [
+    "pending"
+  ],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 28,
+    "onion": 20,
+    "potato": 24,
+    "jam": 12
+  },
+  "restocks": [],
+  "customers": [
+    {
+      "took": {
+        "egg": 4,
+        "onion": 3
+      },
+      "declared": {
+        "egg": 4,
+        "onion": 3
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 1
+      },
+      "declared": {
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 1
+      },
+      "declared": {
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 5
+      },
+      "declared": {
+        "onion": 5
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 5
+      },
+      "declared": {
+        "onion": 5
+      },
+      "payment": "pending",
+      "note": "paid in full; PayPal's webhook has not arrived yet"
+    }
+  ],
+  "dusk": {
+    "egg": 24,
+    "onion": 7,
+    "potato": 24,
+    "jam": 10
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 4,
+      "paid": 4,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "onion": {
+      "taken": 13,
+      "paid": 8,
+      "pending": 5,
+      "netWalked": 0,
+      "gapMinor": 150
+    },
+    "potato": {
+      "taken": 0,
+      "paid": 0,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "jam": {
+      "taken": 2,
+      "paid": 2,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    }
+  }
+}

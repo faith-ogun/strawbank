@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-04",
+  "scenario": [
+    "restock"
+  ],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 32,
+    "onion": 10,
+    "potato": 36,
+    "jam": 5
+  },
+  "restocks": [
+    {
+      "egg": 7,
+      "jam": 2
+    }
+  ],
+  "customers": [
+    {
+      "took": {
+        "onion": 4,
+        "jam": 1
+      },
+      "declared": {
+        "onion": 4,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 6,
+        "potato": 2,
+        "jam": 1
+      },
+      "declared": {
+        "onion": 6,
+        "potato": 2,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "potato": 6,
+        "jam": 2
+      },
+      "declared": {
+        "egg": 1,
+        "potato": 6,
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "potato": 5
+      },
+      "declared": {
+        "potato": 5
+      },
+      "payment": "confirmed",
+      "note": "paid in full, after the restock"
+    }
+  ],
+  "dusk": {
+    "egg": 38,
+    "onion": 0,
+    "potato": 23,
+    "jam": 3
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 1,
+      "paid": 1,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "onion": {
+      "taken": 10,
+      "paid": 10,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "potato": {
+      "taken": 13,
+      "paid": 13,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "jam": {
+      "taken": 4,
+      "paid": 4,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    }
+  }
+}

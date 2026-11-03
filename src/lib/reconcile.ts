@@ -32,7 +32,39 @@ export type DayCounts = {
   duskConfidence: Record<string, number>;
   /** Per item key, quantities in captured order lines, net of refunded quantities. */
   paid: Record<string, number>;
+  /** Per item key, quantities in payments PayPal has not yet confirmed by signed webhook. */
+  pending?: Record<string, number>;
 };
+
+/**
+ * How PayPal stands on one order. confirmed: a signed webhook says the capture
+ * completed. pending: our capture response says it completed, or the capture
+ * is pending, and no webhook has confirmed it yet. unpaid: never captured, or
+ * the capture was denied.
+ */
+export type Payment = "confirmed" | "pending" | "unpaid";
+
+export type DaySale = {
+  lines: { key: string; quantity: number }[];
+  payment: Payment;
+  /** Per item key, quantities refunded through Strawbank (the customer did not take them). */
+  returned?: Record<string, number>;
+};
+
+/** The day's orders -> quantities paid for, and quantities still waiting for PayPal's word. */
+export function paidQuantities(sales: DaySale[]): { paid: Record<string, number>; pending: Record<string, number> } {
+  const paid: Record<string, number> = {};
+  const pending: Record<string, number> = {};
+  for (const sale of sales) {
+    if (sale.payment === "unpaid") continue;
+    const into = sale.payment === "confirmed" ? paid : pending;
+    for (const line of sale.lines) {
+      const kept = Math.max(0, line.quantity - (sale.returned?.[line.key] ?? 0));
+      into[line.key] = (into[line.key] ?? 0) + kept;
+    }
+  }
+  return { paid, pending };
+}
 
 export function reconcileDay(catalogue: CatalogueItem[], counts: DayCounts): ItemReconciliation[] {
   return catalogue.map((item) => {
@@ -42,7 +74,9 @@ export function reconcileDay(catalogue: CatalogueItem[], counts: DayCounts): Ite
     const taken = morning + restocked - dusk;
     const paid = counts.paid[item.key] ?? 0;
     const gap = taken - paid;
-    const uncertain = taken < 0 || (counts.duskConfidence[item.key] ?? 0) < MIN_SHELF_CONFIDENCE;
+    // A payment PayPal has not confirmed yet may cover the gap: never call that missing.
+    const awaiting = gap > 0 && (counts.pending?.[item.key] ?? 0) > 0;
+    const uncertain = taken < 0 || awaiting || (counts.duskConfidence[item.key] ?? 0) < MIN_SHELF_CONFIDENCE;
     return {
       key: item.key,
       name: item.name,

@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-13",
+  "scenario": [
+    "overpay"
+  ],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 36,
+    "onion": 30,
+    "potato": 29,
+    "jam": 11
+  },
+  "restocks": [],
+  "customers": [
+    {
+      "took": {
+        "onion": 1,
+        "potato": 4,
+        "jam": 1
+      },
+      "declared": {
+        "onion": 1,
+        "potato": 4,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 2
+      },
+      "declared": {
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 2,
+        "onion": 4,
+        "jam": 2
+      },
+      "declared": {
+        "egg": 2,
+        "onion": 4,
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 6,
+        "onion": 5,
+        "potato": 1,
+        "jam": 2
+      },
+      "declared": {
+        "egg": 6,
+        "onion": 5,
+        "potato": 1,
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 4,
+        "onion": 1,
+        "potato": 2
+      },
+      "declared": {
+        "egg": 4,
+        "onion": 1,
+        "potato": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 4,
+        "potato": 3
+      },
+      "declared": {
+        "onion": 4,
+        "potato": 3
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "potato": 1
+      },
+      "declared": {
+        "egg": 1,
+        "potato": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 3,
+        "onion": 4,
+        "potato": 3
+      },
+      "declared": {
+        "egg": 4,
+        "onion": 4,
+        "potato": 3
+      },
+      "payment": "confirmed",
+      "note": "paid for one egg more than taken, and asked for no refund"
+    }
+  ],
+  "dusk": {
+    "egg": 20,
+    "onion": 11,
+    "potato": 15,
+    "jam": 4
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 16,
+      "paid": 17,
+      "pending": 0,
+      "netWalked": -1,
+      "gapMinor": 0
+    },
+    "onion": {
+      "taken": 19,
+      "paid": 19,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "potato": {
+      "taken": 14,
+      "paid": 14,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "jam": {
+      "taken": 7,
+      "paid": 7,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    }
+  }
+}

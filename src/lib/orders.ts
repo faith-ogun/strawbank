@@ -80,6 +80,8 @@ export type CreateOrderBody = {
   purchase_units: [
     {
       reference_id: string;
+      /** "<standId>/<YYYY-MM-DD>": PayPal returns it on the capture and in Transaction Search. */
+      custom_id?: string;
       amount: PayPalAmount & { breakdown: { item_total: PayPalAmount } };
       items: {
         name: string;
@@ -96,13 +98,14 @@ export type CreateOrderBody = {
  * The body for `POST /v2/checkout/orders`. Prices already include any tax, so
  * the total is the item total; there is no shipping, tax or discount line.
  */
-export function createOrderBody(lines: OrderLine[], currency: Currency, referenceId: string): CreateOrderBody {
+export function createOrderBody(lines: OrderLine[], currency: Currency, referenceId: string, customId?: string): CreateOrderBody {
   const total = orderTotalMinor(lines);
   return {
     intent: "CAPTURE",
     purchase_units: [
       {
         reference_id: referenceId,
+        ...(customId && { custom_id: customId }),
         amount: {
           currency_code: currency,
           value: toDecimal(total),

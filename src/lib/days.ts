@@ -8,6 +8,7 @@ import { connection } from "next/server";
 import { findStand } from "./demo-stand";
 import { firestore } from "./firestore";
 import type { CatalogueItem } from "./orders";
+import type { ItemReconciliation } from "./reconcile";
 import type { Stand } from "./types";
 
 export type Morning = {
@@ -17,6 +18,32 @@ export type Morning = {
   counts: Record<string, number>;
   confirmedBy: string;
 };
+
+/** What the AI counted on the dusk shelf photo, before the grower checked it. */
+export type DuskReading = { counts: Record<string, number>; confidence: Record<string, number>; photo?: string };
+
+export type PaymentSummary = {
+  orderId: string;
+  captureId?: string;
+  totalMinor: number;
+  payment: "confirmed" | "pending" | "unpaid";
+  /** Who said so: PayPal's signed webhook, or only the capture response our server got. */
+  source: "webhook" | "capture" | "none";
+  refundedMinor: number;
+};
+
+export type Dusk = {
+  date: string;
+  counts: Record<string, number>;
+  confidence: Record<string, number>;
+  items: ItemReconciliation[];
+  explanation: { text: string; source: "model" | "template" };
+  payments: PaymentSummary[];
+  /** Confirmed takings net of completed refunds, in minor units. */
+  takingsMinor: number;
+};
+
+export type DayRecord = { morning?: Morning; duskReading?: DuskReading; dusk?: Dusk; restocks?: Record<string, number>[] };
 
 /** Today's date at the stand, as YYYY-MM-DD. */
 export function standDate(now = new Date()): string {
@@ -28,6 +55,18 @@ const dayDoc = (standId: string, date: string) => firestore().collection("stands
 export async function readMorning(standId: string, date = standDate()): Promise<Morning | undefined> {
   const data = (await dayDoc(standId, date).get()).data();
   return data?.morning as Morning | undefined;
+}
+
+export async function readDay(standId: string, date = standDate()): Promise<DayRecord> {
+  return ((await dayDoc(standId, date).get()).data() ?? {}) as DayRecord;
+}
+
+export async function saveDuskReading(standId: string, date: string, reading: DuskReading): Promise<void> {
+  await dayDoc(standId, date).set({ duskReading: reading }, { merge: true });
+}
+
+export async function saveDusk(standId: string, dusk: Dusk): Promise<void> {
+  await dayDoc(standId, dusk.date).set({ dusk, duskAt: FieldValue.serverTimestamp() }, { merge: true });
 }
 
 export async function saveMorning(standId: string, morning: Morning): Promise<void> {

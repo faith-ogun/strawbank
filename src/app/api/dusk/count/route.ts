@@ -1,0 +1,30 @@
+import { countShelf } from "@/lib/ai/count";
+import { readMorning, saveDuskReading, standDate } from "@/lib/days";
+import { growerStand, photoFrom } from "@/lib/grower-guard";
+import { savePhoto } from "@/lib/photos";
+
+// F3 step 1: the shelf at dusk -> what is left of each item on today's list.
+// The reading is kept with its photo, so closing the day can tell which counts
+// the grower checked and which are the AI's alone.
+
+export async function POST(request: Request) {
+  const guard = await growerStand();
+  if ("refused" in guard) return guard.refused;
+  const date = standDate();
+  const morning = await readMorning(guard.stand.id, date);
+  if (!morning) return Response.json({ error: "the stand was not set up this morning" }, { status: 409 });
+  const form = await request.formData().catch(() => undefined);
+  const upload = await photoFrom(form);
+  if ("refused" in upload) return upload.refused;
+
+  const looks = new Map(guard.catalogue.map((i) => [i.key, i.looks]));
+  const kept = savePhoto(`shelves/${guard.stand.id}/${date}`, upload.photo, upload.mediaType).catch(() => undefined);
+  try {
+    const count = await countShelf({ ...upload, items: morning.catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })) });
+    await saveDuskReading(guard.stand.id, date, { counts: count.counts, confidence: count.confidence, photo: await kept });
+    return Response.json(count);
+  } catch (error) {
+    console.error("dusk count failed:", error instanceof Error ? `${error.name}: ${error.message}` : error);
+    return Response.json({ error: "the shelf could not be counted; try again, or count it yourself" }, { status: 502 });
+  }
+}

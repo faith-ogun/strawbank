@@ -15,12 +15,12 @@ import { type CatalogueItem, MAX_QUANTITY, buildLines, orderTotalMinor } from "@
 import { PayPalButton } from "./paypal-button";
 import { shrinkPhoto } from "./photo";
 
-type CountReply = BasketCount & { sureAt: number };
+type CountReply = BasketCount & { sureAt: number; countId?: string };
 
 type Phase =
   | { kind: "start" }
   | { kind: "counting"; preview: string }
-  | { kind: "review"; preview?: string; reply?: CountReply }
+  | { kind: "review"; preview?: string; reply?: CountReply; countId?: string }
   | { kind: "paying" };
 
 type Props = { standId: string; standName: string; currency: Currency; catalogue: CatalogueItem[]; paypalClientId: string };
@@ -72,7 +72,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
       const reply = (await response.json()) as CountReply;
       if (mine !== attempt.current) return;
       setCounts(Object.fromEntries(catalogue.map((i) => [i.key, Math.min(MAX_QUANTITY, reply.counts[i.key] ?? 0)])));
-      setPhase({ kind: "review", preview, reply });
+      setPhase({ kind: "review", preview, reply, countId: reply.countId });
     } catch (e) {
       if (mine !== attempt.current) return;
       setCounts(zeros(catalogue));
@@ -95,7 +95,8 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ standId, counts }),
+      // The basket photo behind this order, kept as evidence for a refund request.
+      body: JSON.stringify({ standId, counts, countId: phase.kind === "review" ? phase.countId : undefined }),
     });
     if (!response.ok) throw new Error(await readError(response));
     const { orderId } = (await response.json()) as { orderId: string };

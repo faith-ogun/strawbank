@@ -44,6 +44,7 @@ export function toOrderRequest(body: CreateOrderBody, experience?: Experience): 
     purchaseUnits: [
       {
         referenceId: unit.reference_id,
+        ...(unit.custom_id && { customId: unit.custom_id }),
         amount: {
           ...money(unit.amount),
           breakdown: { itemTotal: money(unit.amount.breakdown.item_total) },

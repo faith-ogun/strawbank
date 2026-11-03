@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-14",
+  "scenario": [
+    "refund",
+    "pending"
+  ],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 26,
+    "onion": 29,
+    "potato": 27,
+    "jam": 10
+  },
+  "restocks": [],
+  "customers": [
+    {
+      "took": {
+        "egg": 2
+      },
+      "declared": {
+        "egg": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 1,
+        "potato": 2
+      },
+      "declared": {
+        "onion": 1,
+        "potato": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "onion": 4
+      },
+      "declared": {
+        "egg": 1,
+        "onion": 4
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 6
+      },
+      "declared": {
+        "egg": 6
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "onion": 6,
+        "jam": 1
+      },
+      "declared": {
+        "egg": 1,
+        "onion": 6,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 3,
+        "onion": 2
+      },
+      "declared": {
+        "egg": 4,
+        "onion": 2
+      },
+      "payment": "confirmed",
+      "returned": {
+        "egg": 1
+      },
+      "note": "charged for one egg too many; refunded through Strawbank"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "potato": 3,
+        "jam": 1
+      },
+      "declared": {
+        "egg": 1,
+        "potato": 3,
+        "jam": 1
+      },
+      "payment": "pending",
+      "note": "paid in full; PayPal's webhook has not arrived yet"
+    }
+  ],
+  "dusk": {
+    "egg": 12,
+    "onion": 16,
+    "potato": 22,
+    "jam": 8
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 14,
+      "paid": 13,
+      "pending": 1,
+      "netWalked": 0,
+      "gapMinor": 60
+    },
+    "onion": {
+      "taken": 13,
+      "paid": 13,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "potato": {
+      "taken": 5,
+      "paid": 2,
+      "pending": 3,
+      "netWalked": 0,
+      "gapMinor": 60
+    },
+    "jam": {
+      "taken": 2,
+      "paid": 1,
+      "pending": 1,
+      "netWalked": 0,
+      "gapMinor": 450
+    }
+  }
+}

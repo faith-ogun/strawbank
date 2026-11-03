@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-01",
+  "scenario": [],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 22,
+    "onion": 21,
+    "potato": 36,
+    "jam": 8
+  },
+  "restocks": [],
+  "customers": [
+    {
+      "took": {
+        "onion": 5,
+        "potato": 3
+      },
+      "declared": {
+        "onion": 5,
+        "potato": 3
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 3,
+        "potato": 5,
+        "jam": 2
+      },
+      "declared": {
+        "egg": 3,
+        "potato": 5,
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 2
+      },
+      "declared": {
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 2,
+        "onion": 3,
+        "potato": 5
+      },
+      "declared": {
+        "egg": 2,
+        "onion": 3,
+        "potato": 5
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 1,
+        "potato": 6
+      },
+      "declared": {
+        "egg": 1,
+        "potato": 6
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 3
+      },
+      "declared": {
+        "egg": 3
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    }
+  ],
+  "dusk": {
+    "egg": 13,
+    "onion": 13,
+    "potato": 17,
+    "jam": 4
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 9,
+      "paid": 9,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "onion": {
+      "taken": 8,
+      "paid": 8,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "potato": {
+      "taken": 19,
+      "paid": 19,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "jam": {
+      "taken": 4,
+      "paid": 4,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    }
+  }
+}

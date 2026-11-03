@@ -1,0 +1,165 @@
+{
+  "date": "2026-10-15",
+  "scenario": [
+    "denied",
+    "restock"
+  ],
+  "catalogue": [
+    {
+      "key": "egg",
+      "name": "Eggs",
+      "unitMinor": 60
+    },
+    {
+      "key": "onion",
+      "name": "Onions",
+      "unitMinor": 30
+    },
+    {
+      "key": "potato",
+      "name": "Potatoes",
+      "unitMinor": 20
+    },
+    {
+      "key": "jam",
+      "name": "Jam",
+      "unitMinor": 450
+    }
+  ],
+  "morning": {
+    "egg": 35,
+    "onion": 17,
+    "potato": 23,
+    "jam": 10
+  },
+  "restocks": [
+    {
+      "egg": 8,
+      "jam": 3
+    }
+  ],
+  "customers": [
+    {
+      "took": {
+        "egg": 6,
+        "potato": 3
+      },
+      "declared": {
+        "egg": 6,
+        "potato": 3
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "egg": 4,
+        "onion": 2,
+        "jam": 1
+      },
+      "declared": {
+        "egg": 4,
+        "onion": 2,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 2
+      },
+      "declared": {
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 4,
+        "potato": 1,
+        "jam": 1
+      },
+      "declared": {
+        "onion": 4,
+        "potato": 1,
+        "jam": 1
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "jam": 2
+      },
+      "declared": {
+        "jam": 2
+      },
+      "payment": "confirmed",
+      "note": "paid in full"
+    },
+    {
+      "took": {
+        "onion": 3
+      },
+      "declared": {
+        "onion": 3
+      },
+      "payment": "unpaid",
+      "note": "took goods; PayPal denied the capture"
+    },
+    {
+      "took": {
+        "egg": 4
+      },
+      "declared": {
+        "egg": 4
+      },
+      "payment": "confirmed",
+      "note": "paid in full, after the restock"
+    }
+  ],
+  "dusk": {
+    "egg": 29,
+    "onion": 8,
+    "potato": 19,
+    "jam": 7
+  },
+  "duskConfidence": {
+    "egg": 0.95,
+    "onion": 0.95,
+    "potato": 0.95,
+    "jam": 0.95
+  },
+  "expected": {
+    "egg": {
+      "taken": 14,
+      "paid": 14,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "onion": {
+      "taken": 9,
+      "paid": 6,
+      "pending": 0,
+      "netWalked": 3,
+      "gapMinor": 90
+    },
+    "potato": {
+      "taken": 4,
+      "paid": 4,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    },
+    "jam": {
+      "taken": 6,
+      "paid": 6,
+      "pending": 0,
+      "netWalked": 0,
+      "gapMinor": 0
+    }
+  }
+}
