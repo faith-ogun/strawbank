@@ -1,0 +1,9 @@
+{
+  "currency": "EUR",
+  "lines": [
+    { "text": "Eggs, each", "item": "egg", "price": "0.60" },
+    { "text": "Onions, each", "item": "onion", "price": "0.30" },
+    { "text": "Potatoes, each", "item": "potato", "price": "0.20" }
+  ],
+  "note": "handwritten; cropped from the day-01 morning shelf photo"
+}

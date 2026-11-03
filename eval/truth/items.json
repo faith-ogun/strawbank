@@ -1,0 +1,9 @@
+{
+  "currency": "EUR",
+  "items": [
+    { "key": "egg", "name": "Eggs, each", "looks": "one egg, loose or in an egg box or tray of any brand; a closed egg box hides the eggs inside" },
+    { "key": "onion", "name": "Onions, each", "looks": "one onion, brown or red, loose or in a net or bag" },
+    { "key": "potato", "name": "Potatoes, each", "looks": "one potato, loose or in a bag" },
+    { "key": "jam", "name": "Jam, jar", "looks": "one jar with a cloth or metal lid, label turned away" }
+  ]
+}

@@ -51,7 +51,7 @@ from a table at the end of the lane, with nobody there. You take what you want a
 the money in a jar or tin: an **honesty box**. It runs on trust, and three things go wrong:
 
 - **The tin gets stolen**
-  ([Lancashire](https://www.lep.co.uk/news/crime/callous-thieves-strike-again-after-honesty-box-stolen-from-ribble-valley-farm-3261252),
+  ([Laois](https://www.rte.ie/news/leinster/2023/0330/1367373-honesty-box-eggs), [Kildare](https://www.farmersjournal.ie/tillage/news/kildare-farmer-tracks-down-egg-and-potato-thieves-838832),
   [British Columbia](https://globalnews.ca/news/11323028/lake-country-b-c-farm-stand-operating-on-the-honour-system-raided)).
 - **Fewer people carry cash**, so sales walk past.
 - **At dusk the grower cannot tell what sold from what walked**, so they cannot tell
