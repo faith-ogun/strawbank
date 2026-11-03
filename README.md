@@ -39,8 +39,12 @@
 > **Status: in development.** The money code is written and tested (eval E4, below), and a
 > sandbox order with one line per item is created and captured through the PayPal Server SDK,
 > and partial refunds go through the PayPal Agent Toolkit with the amount code decided. The
-> customer, grower and ledger pages are being built. This README only claims what works, and
-> every result in it comes from `npm run eval`.
+> customer's stand page and receipt are live, with sandbox payments; the grower and ledger
+> pages are being built. This README only claims what works, and every result in it comes
+> from `npm run eval`.
+>
+> **Try it on a phone:** [the demo stand](https://strawbank-434001576954.europe-west1.run.app/s/demo).
+> Payments are PayPal sandbox only; no real money moves.
 
 ---
 
@@ -143,7 +147,10 @@ npm run dev        # the app shell, on http://localhost:3000
 ```
 
 For the PayPal and Gemini parts, copy `.env.example` to `.env.local` and fill in sandbox
-credentials. Hosted demo link and test logins: to come.
+credentials. The hosted demo needs none of this: it is live at
+https://strawbank-434001576954.europe-west1.run.app, and the demo stand is
+[`/s/demo`](https://strawbank-434001576954.europe-west1.run.app/s/demo). A sandbox buyer
+login for judges: to come.
 
 ---
 
