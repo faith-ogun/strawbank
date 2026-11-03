@@ -18,6 +18,7 @@
 
 import { type ModelMessage, Output, generateText, jsonSchema, tool } from "ai";
 import { readNumbers } from "../explain-check";
+import { hedged } from "./hedged";
 import { geminiModel } from "./model";
 
 /** The parts of AG Studio's AgLlmRequest this route reads (ag-studio's own type, kept loose for the wire). */
@@ -130,18 +131,21 @@ export async function runStudioTurn(request: StudioRequest, signatures: Record<s
   const choice = request.toolChoice;
   const toolChoice = typeof choice === "object" ? { type: "tool" as const, toolName: choice.name } : choice;
   const format = request.responseFormat;
-  const result = await generateText({
-    model: geminiModel("careful"),
-    instructions: request.instructions,
-    messages: toMessages(request.input, signatures),
-    ...(Object.keys(tools).length > 0 && { tools, toolChoice }),
-    ...(format?.type === "json" && { output: Output.object({ schema: jsonSchema(format.schema as never), name: format.name, description: format.description }) }),
-    providerOptions: { vertex: { thinkingConfig: { thinkingLevel: "low" } }, google: { thinkingConfig: { thinkingLevel: "low" } } },
-    maxOutputTokens: 8192,
-    maxRetries: 1,
-    timeout: { totalMs: 60_000 },
-    abortSignal: signal,
-  });
+  // A turn normally answers in 2 to 25 s; a second try at 20 s covers a stalled call.
+  const ask = (abortSignal: AbortSignal) =>
+    generateText({
+      model: geminiModel("careful"),
+      instructions: request.instructions,
+      messages: toMessages(request.input, signatures),
+      ...(Object.keys(tools).length > 0 && { tools, toolChoice }),
+      ...(format?.type === "json" && { output: Output.object({ schema: jsonSchema(format.schema as never), name: format.name, description: format.description }) }),
+      providerOptions: { vertex: { thinkingConfig: { thinkingLevel: "low" } }, google: { thinkingConfig: { thinkingLevel: "low" } } },
+      maxOutputTokens: 8192,
+      maxRetries: 0,
+      timeout: { totalMs: 45_000 },
+      abortSignal: signal ? AbortSignal.any([signal, abortSignal]) : abortSignal,
+    });
+  const result = await hedged(ask, [0, 20_000]);
 
   const toolCalls = result.toolCalls.map((call) => {
     const meta = (call as { providerMetadata?: Record<string, { thoughtSignature?: unknown }> }).providerMetadata;

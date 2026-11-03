@@ -8,6 +8,7 @@ import { z } from "zod";
 import { MAX_QUANTITY } from "../orders";
 import { mentionsMoney } from "../explain-check";
 import { MIN_RECOUNT_CONFIDENCE } from "../refunds";
+import { hedged } from "./hedged";
 import { type ModelSpeed, geminiModel } from "./model";
 
 /** What the model is told about one item on today's list. */
@@ -214,30 +215,6 @@ export function readReply(keys: string[], output: CountReplyFromModel): BasketCo
     unlisted: output.unlisted.map((u) => ({ what: shown(u.what) ?? "something not on the list", count: u.count })),
     ...(problem && { problem }),
   };
-}
-
-/**
- * Runs `call` at each of `triesAtMs` (milliseconds from the start) until one
- * answers; a failed try starts the next one at once. The first answer wins and
- * the others are cancelled; it fails only if every try does.
- */
-function hedged<T>(call: (signal: AbortSignal) => Promise<T>, triesAtMs: number[]): Promise<T> {
-  const controllers: AbortController[] = [];
-  const timers: ReturnType<typeof setTimeout>[] = [];
-  return new Promise<T>((resolve, reject) => {
-    let failures = 0;
-    const launch = () => {
-      if (controllers.length === triesAtMs.length) return;
-      const controller = new AbortController();
-      controllers.push(controller);
-      call(controller.signal).then(resolve, (error) => (++failures === triesAtMs.length ? reject(error) : launch()));
-    };
-    for (const at of triesAtMs.slice(1)) timers.push(setTimeout(launch, at));
-    launch();
-  }).finally(() => {
-    timers.forEach(clearTimeout);
-    for (const controller of controllers) controller.abort();
-  });
 }
 
 /** The lowest confidence across the basket: one unsure item makes the basket unsure. */
