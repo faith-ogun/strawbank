@@ -80,6 +80,29 @@ At dusk, one more photo of the shelf, and the grower gets the day's truth in pla
 
 ---
 
+## PayPal, call by call
+
+Every call below is shown in the app as it happens, with PayPal's debug ID, on the
+grower's page and on each receipt. "Seen working" is the date it last ran in the sandbox.
+
+| What | PayPal endpoint | Through | Code | Seen working |
+|---|---|---|---|---|
+| Create the order, one line per item | `POST /v2/checkout/orders` | PayPal Server SDK | `src/lib/paypal/orders.ts` | 28 Oct, 3 Nov |
+| Capture the payment | `POST /v2/checkout/orders/{id}/capture` | PayPal Server SDK | `src/lib/paypal/orders.ts` | 28 Oct, 3 Nov |
+| Read the order for the receipt | `GET /v2/checkout/orders/{id}` | PayPal Server SDK | `src/lib/paypal/orders.ts` | 3 Nov |
+| The PayPal button on the customer's phone | JS SDK v6 | `@paypal/paypal-js` | `src/components/stand/paypal-button.tsx` | 3 Nov |
+| Partial refund, amount from code | `POST /v2/payments/captures/{id}/refund` | Agent Toolkit `create_refund` | `src/lib/paypal/refunds.ts` | 28 Oct, 3 Nov |
+| Confirm a webhook's signature | `POST /v1/notifications/verify-webhook-signature` | REST | `src/lib/paypal/webhooks.ts` | 3 Nov (a real refund event confirmed; a forged one refused) |
+| List the day's items as products | `POST /v1/catalogs/products` | Agent Toolkit `create_product` | `src/lib/paypal/catalog.ts` | 3 Nov |
+| The next-morning audit | `GET /v1/reporting/transactions` | PayPal Server SDK | `src/lib/paypal/transactions.ts` | 3 Nov |
+| Grower sign-in | `/connect`, `POST /v1/oauth2/token`, `GET /v1/identity/oauth2/userinfo` | REST | `src/lib/paypal/login.ts` | not yet: waits for the app's Log in with PayPal setting |
+
+Webhook events received: payment captured, denied, declined, refunded and reversed; order
+approved and completed. Each one is applied to the ledger once, whatever order it arrives in
+(eval E4.4).
+
+---
+
 ## The rule: the AI never touches money
 
 The AI reads, counts and explains. **Every total, refund, cap and gap is plain code**,
