@@ -1,6 +1,7 @@
 import fc from "fast-check";
 import { type LedgerFact, Ledger, type WebhookEvent } from "../../src/lib/ledger";
 import { type Currency, toDecimal } from "../../src/lib/money";
+import { handlePayPalWebhook } from "../../src/lib/webhook";
 import { assert, currencyArb, moneyProperty } from "./shared";
 
 type CaptureStatus = "PENDING" | "COMPLETED" | "DENIED";
@@ -140,6 +141,62 @@ const ledgerCountsOnce = fc.property(scenarioArb, ({ history, unique, delivered 
   assert(paid === expectedPaid, `captured total ${paid}, expected ${expectedPaid}`);
 });
 
+/** The ledger behind the webhook route, in memory: the same Ledger the Firestore store seeds and saves. */
+function memoryStore(ledger: Ledger, applied: string[]) {
+  return {
+    async apply(event: WebhookEvent) {
+      applied.push(event.id);
+      const duplicate = ledger.eventIds.has(event.id);
+      return { duplicate, changed: ledger.apply(event) };
+    },
+  };
+}
+
+const signedScenarioArb = scenarioArb.chain((s) =>
+  fc.record({
+    scenario: fc.constant(s),
+    // Whether PayPal confirms each event id's signature (a forged event is never confirmed).
+    signed: fc.array(fc.boolean(), { minLength: s.unique.length, maxLength: s.unique.length }),
+    junk: fc.array(fc.oneof(fc.string(), fc.constant("{}"), fc.constant('{"id":1}'), fc.constant("[]")), { maxLength: 3 }),
+  }),
+);
+
+const onlySignedReachTheLedger = fc.asyncProperty(signedScenarioArb, async ({ scenario, signed, junk }) => {
+  const isSigned = new Map<string, boolean>();
+  scenario.unique.forEach((d, i) => "event" in d && isSigned.set(d.event.id, signed[i]));
+
+  const ledger = new Ledger();
+  const applied: string[] = [];
+  let sent = "";
+  const deps = {
+    async verify(rawBody: string, headers: Headers) {
+      assert(rawBody === sent, "the verifier did not get the body exactly as sent");
+      return isSigned.get(headers.get("paypal-transmission-id") ?? "") === true;
+    },
+    store: memoryStore(ledger, applied),
+  };
+
+  for (const d of scenario.delivered) {
+    if (!("event" in d)) continue;
+    // Spacing PayPal might use; the signature covers these exact bytes.
+    sent = JSON.stringify(d.event, null, d.event.id.length % 2 ? 2 : undefined);
+    const { status } = await handlePayPalWebhook(sent, new Headers({ "paypal-transmission-id": d.event.id }), deps);
+    const expected = isSigned.get(d.event.id) ? 200 : 400;
+    assert(status === expected, `${d.event.id}: status ${status}, expected ${expected}`);
+  }
+  for (const body of junk) {
+    sent = body;
+    const { status } = await handlePayPalWebhook(body, new Headers(), deps);
+    assert(status === 400, `a body that is not a PayPal event got ${status}`);
+  }
+
+  assert(applied.every((id) => isSigned.get(id) === true), "an unconfirmed event reached the ledger");
+  const canonical = new Ledger();
+  for (const d of scenario.unique) if ("event" in d && isSigned.get(d.event.id)) canonical.apply(d.event);
+  assert(JSON.stringify(ledger.snapshot()) === JSON.stringify(canonical.snapshot()), "the signed events gave a different ledger");
+});
+
 export const p4 = [
   moneyProperty("E4.4", "A duplicate or late webhook never changes the ledger twice", ledgerCountsOnce),
+  moneyProperty("E4.4b", "Only a webhook PayPal confirms as signed reaches the ledger, and only once", onlySignedReachTheLedger),
 ];

@@ -128,10 +128,13 @@ function amountOf(resource: Record<string, unknown>): { amountMinor: number; cur
   return { amountMinor: toMinor(amount.value), currency };
 }
 
+// PayPal has both DENIED and DECLINED capture events (its event list, read 3 Nov);
+// for the ledger both mean the money never arrived.
 const CAPTURE_EVENTS: Record<string, CaptureStatus> = {
   "PAYMENT.CAPTURE.PENDING": "PENDING",
   "PAYMENT.CAPTURE.COMPLETED": "COMPLETED",
   "PAYMENT.CAPTURE.DENIED": "DENIED",
+  "PAYMENT.CAPTURE.DECLINED": "DENIED",
 };
 
 const REFUND_STATUSES: RefundStatus[] = ["PENDING", "COMPLETED", "FAILED", "CANCELLED"];
