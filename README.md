@@ -86,42 +86,12 @@ At dusk, one more photo of the shelf, and the grower gets the day's truth in pla
 
 ## How it fits together
 
-```mermaid
-flowchart TB
-  customer["<b>Customer's phone</b><br/>stand page · receipt · IOU"]
-  grower["<b>Grower's phone</b><br/>morning · dusk · refunds<br/>IOUs · disputes · audit<br/>the ledger in AG Studio"]
-
-  subgraph run["Next.js on Cloud Run"]
-    routes["<b>API routes</b><br/>per-visitor limits<br/>grower session check"]
-    ai["<b>AI steps</b><br/>count · read · explain<br/>ledger agents"]
-    code["<b>Plain code</b><br/>totals · refunds · caps<br/>gaps · IOU prices<br/>dispute evidence · audit"]
-    check{"<b>Numbers check</b><br/>a number code<br/>did not compute<br/>is replaced"}
-    hook["<b>Webhook route</b><br/>PayPal confirms<br/>each signature"]
-  end
-
-  gemini["<b>Gemini</b><br/>on Vertex AI"]
-  paypal["<b>PayPal sandbox</b><br/>Orders v2 · refunds<br/>Invoicing v2 · Disputes<br/>Catalog Products<br/>Transaction Search<br/>webhooks<br/>Log in with PayPal"]
-  store[("<b>Firestore and<br/>Cloud Storage</b><br/>orders · ledger · refunds<br/>IOUs · disputes<br/>every PayPal call<br/>photos for 30 days")]
-
-  customer -- "basket photo" --> routes
-  grower -- "photos · approvals<br/>questions" --> routes
-  routes --> ai
-  routes --> code
-  ai <-- "photos, prompts" --> gemini
-  ai -- "counts and words" --> check
-  code -- "computed numbers" --> check
-  code -- "amounts code decided" --> paypal
-  paypal -- "signed webhooks" --> hook
-  hook --> store
-  code <--> store
-
-  classDef model fill:#FFF4D6,stroke:#C98A00,color:#0A1643
-  classDef plain fill:#E7F8EE,stroke:#2EA043,color:#0A1643
-  classDef pay fill:#E6F0FF,stroke:#0070E0,color:#0A1643
-  class ai,gemini model
-  class code,check,hook plain
-  class paypal pay
-```
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/architecture-dark.svg">
+    <img src="assets/readme/architecture.svg" width="880" alt="Architecture: the customer's and grower's phones talk to the Next.js app on Cloud Run. Inside it, the AI steps (on Gemini) count, read and explain, and plain code does totals, refunds, caps, gaps, IOU prices, dispute evidence and the audit. A numbers check replaces any number in the AI's words that code did not compute. Only plain code talks to PayPal; PayPal's signed webhooks come back through a route that confirms each signature, into Firestore.">
+  </picture>
+</p>
 
 Yellow is the AI, green is plain code, blue is PayPal. The AI steps have no path to PayPal:
 every amount PayPal sees was worked out by plain code. The customer approves each payment
