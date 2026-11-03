@@ -8,27 +8,12 @@ import type { DocumentReference } from "@google-cloud/firestore";
 import { explainDay } from "./ai/explain";
 import { type Dusk, type PaymentSummary, readDay, saveDusk } from "./days";
 import { explanationToShow } from "./explain-check";
-import { firestore } from "./firestore";
+import { firestore, whereIn } from "./firestore";
 import type { LedgerCapture, LedgerRefund } from "./ledger";
 import { type Currency, addMinor } from "./money";
 import type { CatalogueItem } from "./orders";
 import { type DaySale, allowedNumbers, paidQuantities, reconcileDay, templateExplanation } from "./reconcile";
 import { type Sale, daySales } from "./sales";
-
-/** Firestore's limit on an "in" query. */
-const IN_LIMIT = 30;
-
-function chunks<T>(list: T[]): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < list.length; i += IN_LIMIT) out.push(list.slice(i, i + IN_LIMIT));
-  return out;
-}
-
-async function whereIn<T>(collection: string, field: string, values: string[]): Promise<T[]> {
-  const store = firestore();
-  const results = await Promise.all(chunks(values).map((part) => store.collection(collection).where(field, "in", part).get()));
-  return results.flatMap((snap) => snap.docs.map((d) => d.data() as T));
-}
 
 /** A refund made through Strawbank (F4), with the quantities the customer did not take. */
 export type RefundRequestRecord = { orderId: string; status: string; items?: Record<string, number> };

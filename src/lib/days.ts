@@ -7,6 +7,7 @@ import { FieldValue } from "@google-cloud/firestore";
 import { connection } from "next/server";
 import { findStand } from "./demo-stand";
 import { firestore } from "./firestore";
+import type { AuditResult } from "./audit";
 import type { CatalogueItem } from "./orders";
 import type { ItemReconciliation } from "./reconcile";
 import type { Stand } from "./types";
@@ -43,11 +44,18 @@ export type Dusk = {
   takingsMinor: number;
 };
 
-export type DayRecord = { morning?: Morning; duskReading?: DuskReading; dusk?: Dusk; restocks?: Record<string, number>[] };
+export type Audit = AuditResult & { checkedAt: string };
+
+export type DayRecord = { morning?: Morning; duskReading?: DuskReading; dusk?: Dusk; audit?: Audit; restocks?: Record<string, number>[] };
 
 /** Today's date at the stand, as YYYY-MM-DD. */
 export function standDate(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Dublin", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+/** The stand's last `n` dates, today first. */
+export function recentStandDates(n: number, now = Date.now()): string[] {
+  return Array.from({ length: n }, (_, i) => standDate(new Date(now - i * 24 * 60 * 60 * 1000)));
 }
 
 const dayDoc = (standId: string, date: string) => firestore().collection("stands").doc(standId).collection("days").doc(date);
@@ -67,6 +75,10 @@ export async function saveDuskReading(standId: string, date: string, reading: Du
 
 export async function saveDusk(standId: string, dusk: Dusk): Promise<void> {
   await dayDoc(standId, dusk.date).set({ dusk, duskAt: FieldValue.serverTimestamp() }, { merge: true });
+}
+
+export async function saveAudit(standId: string, date: string, audit: Audit): Promise<void> {
+  await dayDoc(standId, date).set({ audit }, { merge: true });
 }
 
 export async function saveMorning(standId: string, morning: Morning): Promise<void> {
