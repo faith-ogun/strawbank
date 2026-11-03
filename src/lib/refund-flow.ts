@@ -1,0 +1,193 @@
+// F4 end to end. A customer says what they really took; the agent recounts
+// their stored basket photo on the careful model; code decides the amount and
+// who settles it (decideRefund, eval E4.2); the agent refunds through the
+// Agent Toolkit only when code says it may, at most once per request (eval
+// E4.3). Everything else waits for the grower, with the photo held as evidence.
+// Every word the customer reads here is written by code, not the model.
+
+import { createHash } from "node:crypto";
+import { countBasket } from "./ai/count";
+import { findStand } from "./demo-stand";
+import { readMorning } from "./days";
+import { firestore } from "./firestore";
+import type { LedgerCapture } from "./ledger";
+import { formatMoney } from "./money";
+import { ToolkitRefundGateway } from "./paypal/refunds";
+import { holdPhoto, readPhoto } from "./photos";
+import { type RefundRequest, firestoreRefundStore, readRequest, refundableNow, saveRequest, updateRequest } from "./refund-store";
+import { type RefundOutcome, decideRefund, issueRefund } from "./refunds";
+import { readBasket, readSale } from "./sales";
+
+export class RefundClaimError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
+const REASONS: Record<string, string> = {
+  "the photo does not support the claim": "the basket photo seems to show more than you say you took",
+  "the recount is uncertain": "the basket photo is not clear enough for the agent to be sure",
+  "over the grower's limit": "it is more than the agent may refund on its own",
+  "earlier refunds leave less than the claim": "earlier refunds leave less than you asked for",
+  "no basket photo to recount": "there is no basket photo to check",
+};
+
+async function captureFor(orderId: string, known?: string): Promise<LedgerCapture | undefined> {
+  const store = firestore();
+  if (known) {
+    const capture = (await store.collection("ledgerCaptures").doc(known).get()).data() as LedgerCapture | undefined;
+    if (capture) return capture;
+  }
+  const snap = await store.collection("ledgerCaptures").where("orderId", "==", orderId).limit(1).get();
+  return snap.docs[0]?.data() as LedgerCapture | undefined;
+}
+
+/** The same claim on the same order is the same request, so pressing twice never refunds twice. */
+function requestIdFor(orderId: string, claimed: Record<string, number>): string {
+  const sorted = Object.keys(claimed).sort().map((k) => `${k}=${claimed[k]}`).join(",");
+  return createHash("sha256").update(`${orderId}|${sorted}`).digest("hex").slice(0, 32);
+}
+
+/** What the customer reads about a request, in code's words. */
+export function requestMessage(request: RefundRequest): string {
+  const amount = formatMoney(request.amountMinor, request.currency);
+  switch (request.status) {
+    case "COMPLETED":
+      return request.decidedBy === "agent"
+        ? `The stand's agent recounted your basket photo and agrees. ${amount} has been refunded to your PayPal account.`
+        : `The grower agreed. ${amount} has been refunded to your PayPal account.`;
+    case "PENDING":
+      return `A refund of ${amount} has been sent to PayPal and is on its way.`;
+    case "WAITING":
+      return `The grower will look at this, because ${request.reasons.map((r) => REASONS[r] ?? r).join(", and ")}. The answer will show on this receipt.`;
+    case "DECLINED":
+      return "The grower looked at your basket photo and did not refund this. If you think that is wrong, you can still contact PayPal.";
+    case "FAILED":
+      return "PayPal did not accept the refund. The grower has been told.";
+    default:
+      return request.reasons.map((r) => REASONS[r] ?? r).join(". ");
+  }
+}
+
+function settled(request: RefundRequest, outcome: RefundOutcome): RefundRequest {
+  if (outcome.kind === "over") return { ...request, status: "NONE", reasons: ["nothing left to refund on this payment"] };
+  return { ...request, status: outcome.record.status, refund: outcome.record };
+}
+
+export async function claimRefund(orderId: string, claimedInput: Record<string, number>): Promise<RefundRequest> {
+  const sale = await readSale(orderId);
+  if (!sale) throw new RefundClaimError("this order was not made at a Strawbank stand page", 404);
+  const found = findStand(sale.standId);
+  if (!found) throw new RefundClaimError("this stand no longer exists", 404);
+
+  const lineKeys = new Set(sale.lines.map((l) => l.key));
+  if (Object.keys(claimedInput).some((k) => !lineKeys.has(k))) throw new RefundClaimError("a claim names an item that was not in this order", 400);
+  const claimed = Object.fromEntries(sale.lines.map((l) => [l.key, claimedInput[l.key] ?? l.quantity]));
+  for (const line of sale.lines) {
+    const n = claimed[line.key];
+    if (!Number.isInteger(n) || n < 0 || n > line.quantity) throw new RefundClaimError(`you can claim between 0 and ${line.quantity} for ${line.name}`, 400);
+  }
+
+  const requestId = requestIdFor(orderId, claimed);
+  const existing = await readRequest(requestId);
+  if (existing) return existing;
+
+  const capture = await captureFor(orderId, sale.captureId);
+  if (!capture || capture.status !== "COMPLETED") {
+    throw new RefundClaimError("PayPal has not confirmed this payment yet; try again in a minute", 409);
+  }
+
+  // The agent recounts the photo the customer took at the stand, on the careful model.
+  const basket = sale.countId ? await readBasket(sale.countId) : undefined;
+  let recount: Record<string, number> | undefined;
+  let recountConfidence = 0;
+  if (basket) {
+    const morning = await readMorning(sale.standId, sale.date);
+    const catalogue = morning?.catalogue ?? found.catalogue;
+    const looks = new Map(found.catalogue.map((i) => [i.key, i.looks]));
+    const { data, contentType } = await readPhoto(basket.photo);
+    const count = await countBasket({
+      photo: data,
+      mediaType: contentType,
+      items: catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })),
+      speed: "careful",
+      thinking: "low",
+    });
+    recount = count.counts;
+    const disputed = sale.lines.filter((l) => claimed[l.key] < l.quantity);
+    recountConfidence = Math.min(...disputed.map((l) => count.confidence[l.key] ?? 0));
+  }
+
+  const decision = decideRefund({
+    lines: sale.lines,
+    claimed,
+    recount: recount ?? {},
+    recountConfidence,
+    refundableMinor: await refundableNow(capture.captureId),
+    limitMinor: found.stand.refundLimitMinor,
+  });
+  const reasons = decision.route === "agent" ? [] : decision.reasons;
+  if (!basket && decision.route !== "none") reasons.unshift("no basket photo to recount");
+
+  let request: RefundRequest = {
+    requestId,
+    orderId,
+    standId: sale.standId,
+    date: sale.date,
+    captureId: capture.captureId,
+    currency: sale.currency,
+    lines: sale.lines,
+    claimed,
+    items: Object.fromEntries(sale.lines.map((l) => [l.key, l.quantity - claimed[l.key]]).filter(([, n]) => (n as number) > 0)),
+    recount,
+    recountConfidence: recount ? recountConfidence : undefined,
+    countId: basket?.countId,
+    route: decision.route,
+    reasons,
+    amountMinor: decision.route === "none" ? 0 : decision.amountMinor,
+    status: decision.route === "none" ? "NONE" : decision.route === "grower" ? "WAITING" : "PENDING",
+    ...(decision.route === "agent" && { decidedBy: "agent" as const }),
+  };
+  await saveRequest(request);
+
+  if (decision.route === "grower" && basket) await holdPhoto(basket.photo, true).catch(() => undefined);
+  if (decision.route !== "agent") return request;
+
+  const outcome = await issueRefund(firestoreRefundStore, new ToolkitRefundGateway(), {
+    requestId,
+    captureId: capture.captureId,
+    amountMinor: decision.amountMinor,
+    currency: sale.currency,
+    decidedBy: "agent",
+  });
+  request = settled(request, outcome);
+  if (outcome.kind === "over") await updateRequest(requestId, { status: request.status, reasons: request.reasons });
+  return request;
+}
+
+/** The grower's answer to a request that waited for them. */
+export async function growerDecides(requestId: string, standId: string, action: "refund" | "decline"): Promise<RefundRequest> {
+  const request = await readRequest(requestId);
+  if (!request || request.standId !== standId) throw new RefundClaimError("no such request at your stand", 404);
+  if (request.status !== "WAITING") throw new RefundClaimError("this request is already settled", 409);
+  const basket = request.countId ? await readBasket(request.countId) : undefined;
+  if (basket) await holdPhoto(basket.photo, false).catch(() => undefined);
+
+  if (action === "decline") {
+    await updateRequest(requestId, { status: "DECLINED", decidedBy: "grower" });
+    return { ...request, status: "DECLINED", decidedBy: "grower" };
+  }
+  const outcome = await issueRefund(firestoreRefundStore, new ToolkitRefundGateway(), {
+    requestId,
+    captureId: request.captureId,
+    amountMinor: request.amountMinor,
+    currency: request.currency,
+    decidedBy: "grower",
+  });
+  const next = settled({ ...request, decidedBy: "grower" }, outcome);
+  if (outcome.kind === "over") await updateRequest(requestId, { status: next.status, reasons: next.reasons, decidedBy: "grower" });
+  return next;
+}

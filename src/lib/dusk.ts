@@ -65,7 +65,8 @@ export async function paymentsForDay(standId: string, date: string): Promise<{ s
     let payment: PaymentSummary["payment"];
     let source: PaymentSummary["source"];
     if (capture) {
-      source = "webhook";
+      // PayPal's word, from its capture reply to our server or its signed webhook (both, once the webhook lands).
+      source = (capture as LedgerCapture & { confirmedByWebhook?: boolean }).confirmedByWebhook ? "webhook" : "capture";
       payment = capture.status === "COMPLETED" ? "confirmed" : capture.status === "DENIED" ? "unpaid" : "pending";
     } else if (sale.captureStatus === "COMPLETED" || sale.captureStatus === "PENDING") {
       source = "capture";

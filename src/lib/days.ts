@@ -27,7 +27,7 @@ export type PaymentSummary = {
   captureId?: string;
   totalMinor: number;
   payment: "confirmed" | "pending" | "unpaid";
-  /** Who said so: PayPal's signed webhook, or only the capture response our server got. */
+  /** Who said so: PayPal's signed webhook as well as its capture reply, or the capture reply alone. */
   source: "webhook" | "capture" | "none";
   refundedMinor: number;
 };

@@ -23,7 +23,7 @@ const button = "block w-full rounded-full py-3.5 text-center font-semibold";
 const GROWER_PAGES = (standId: string) => [
   { href: "/grower/morning", label: "Morning set-up", hint: "Photograph the price card and the shelf", ready: true },
   { href: "/grower/dusk", label: "Dusk report", hint: "What sold and what walked", ready: true },
-  { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you", ready: false },
+  { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you", ready: true },
   { href: "/ledger", label: "Ledger", hint: "Every payment and refund", ready: false },
   { href: `/s/${standId}`, label: "The stand page", hint: "What customers see", ready: true },
 ];

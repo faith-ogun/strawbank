@@ -1,11 +1,14 @@
 import { DEMO_STAND } from "@/lib/demo-stand";
+import { firestoreLedger } from "@/lib/ledger-store";
 import { PayPalError, capturePayPalOrder } from "@/lib/paypal/orders";
 import { readSale, recordCapture } from "@/lib/sales";
 
-// F2 step 5: capture the order the customer approved. The ledger records the
-// capture from PayPal's signed webhook, not from this response (spec section 7),
-// so a lost response here never loses a sale. The capture id is also noted on
-// the order, so the dusk report can find PayPal's word on it.
+// F2 step 5: capture the order the customer approved. PayPal's reply goes into
+// the ledger at once, and its signed webhook confirms it there (spec section
+// 7): a lost reply here never loses a sale, and a late webhook never hides one.
+// The capture id is also noted on the order, for the dusk report and refunds.
+
+const LEDGER_STATUS = { COMPLETED: "COMPLETED", PENDING: "PENDING", DECLINED: "DENIED", FAILED: "DENIED" } as const;
 
 /** PayPal order ids are upper-case letters and digits. */
 const ORDER_ID = /^[A-Z0-9]{8,40}$/;
@@ -17,11 +20,19 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/orders/[or
   try {
     const sale = await readSale(orderId).catch(() => undefined);
     const capture = await capturePayPalOrder(orderId, sale?.currency ?? DEMO_STAND.currency);
-    if (sale) {
-      await recordCapture(orderId, capture.captureId, capture.captureStatus).catch((error) => {
-        console.error("capture not noted on the order:", error instanceof Error ? error.message : error);
-      });
-    }
+    const status = LEDGER_STATUS[capture.captureStatus as keyof typeof LEDGER_STATUS];
+    await Promise.all([
+      sale && recordCapture(orderId, capture.captureId, capture.captureStatus),
+      status &&
+        firestoreLedger.record({
+          kind: "capture",
+          captureId: capture.captureId,
+          orderId,
+          amountMinor: capture.amountMinor,
+          currency: sale?.currency ?? DEMO_STAND.currency,
+          status,
+        }),
+    ]).catch((error) => console.error("capture not noted:", error instanceof Error ? error.message : error));
     return Response.json(capture);
   } catch (error) {
     if (error instanceof PayPalError) {

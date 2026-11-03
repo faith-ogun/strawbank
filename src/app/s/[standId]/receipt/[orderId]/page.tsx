@@ -7,10 +7,15 @@ import { findStand } from "@/lib/demo-stand";
 import { formatMoney, fromPayPalAmount } from "@/lib/money";
 import { lineTotalMinor } from "@/lib/orders";
 import { PayPalError, getPayPalOrder } from "@/lib/paypal/orders";
+import { requestMessage } from "@/lib/refund-flow";
+import { requestsForOrder } from "@/lib/refund-store";
+import { readSale } from "@/lib/sales";
+import { RefundClaim } from "@/components/stand/refund-claim";
 
 // F2 step 5: the receipt, read back from PayPal's own record of the order.
 // Amounts are PayPal's, parsed into minor units; each line total is worked
-// out by src/lib/orders.ts. The "something's wrong" link (F4) comes next.
+// out by src/lib/orders.ts. Under it, "something's wrong" (F4) and what became
+// of any claim.
 
 export const metadata: Metadata = { title: "Strawbank · your receipt" };
 
@@ -37,6 +42,7 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
   const capture = unit?.payments?.captures?.[0];
   const refunds = unit?.payments?.refunds ?? [];
   const paid = order.status === "COMPLETED" && capture?.status !== "DECLINED";
+  const [sale, claims] = await Promise.all([readSale(orderId).catch(() => undefined), requestsForOrder(orderId).catch(() => [])]);
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4 pb-16 pt-6">
@@ -84,6 +90,15 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
           {capture?.id && <> · payment {capture.id}</>}
         </p>
       </div>
+
+      {claims.map((claim) => (
+        <p key={claim.requestId} className={`mt-4 rounded-2xl px-4 py-3 text-sm text-ink ${claim.status === "COMPLETED" ? "bg-mint-soft" : "bg-paper"}`}>
+          {requestMessage(claim)}
+        </p>
+      ))}
+      {paid && sale?.standId === standId && (
+        <RefundClaim orderId={orderId} lines={sale.lines.map(({ key, name, quantity }) => ({ key, name, quantity }))} />
+      )}
 
       <p className="mt-8 text-center">
         <Link href={`/s/${standId}`} className="font-semibold text-ink underline decoration-straw decoration-2 underline-offset-4">

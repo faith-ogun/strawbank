@@ -7,8 +7,8 @@ import { type Currency, formatMoney } from "@/lib/money";
 
 const shortName = (name: string) => name.replace(/, each$/i, "");
 const SOURCE: Record<string, string> = {
-  webhook: "confirmed by PayPal's signed webhook",
-  capture: "captured; waiting for PayPal's signed webhook",
+  webhook: "paid; PayPal's signed webhook confirms it",
+  capture: "paid; PayPal's signed webhook not in yet",
   none: "started, never paid",
 };
 

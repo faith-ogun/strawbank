@@ -1,8 +1,11 @@
 // The ledger, kept in Firestore. Each verified webhook is applied in one
 // transaction: if its event id is already stored, nothing changes; otherwise
 // the captures and refunds it touches are read, merged by the same Ledger the
-// evals test (E4.4), and written back with the event id. Only what the ledger
-// needs is stored: no payer names or emails.
+// evals test (E4.4), and written back with the event id. The capture reply our
+// server gets at checkout is merged the same way (`record`), so a late webhook
+// never hides a payment PayPal has already confirmed; a capture the signed
+// webhook has also confirmed is marked `confirmedByWebhook`. Only what the
+// ledger needs is stored: no payer names or emails.
 
 import { FieldValue, type Firestore } from "@google-cloud/firestore";
 import { firestore } from "./firestore";
@@ -46,7 +49,7 @@ export const firestoreLedger = {
 
       facts.forEach((fact, i) => {
         const merged = fact.kind === "capture" ? ledger.captures.get(fact.captureId) : ledger.refunds.get(fact.refundId);
-        tx.set(factRefs[i], { ...merged, updatedAt: FieldValue.serverTimestamp() });
+        tx.set(factRefs[i], { ...merged, confirmedByWebhook: true, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
       });
       tx.create(eventRef, {
         eventType: event.event_type,
@@ -55,6 +58,22 @@ export const firestoreLedger = {
         unusable,
       });
       return { duplicate: false, changed };
+    });
+  },
+
+  /** Merges one fact from our own PayPal call (the capture reply at checkout). */
+  async record(fact: LedgerFact): Promise<boolean> {
+    const store = firestore();
+    const ref = docFor(store, fact);
+    return store.runTransaction(async (tx) => {
+      const stored = (await tx.get(ref)).data();
+      const ledger = new Ledger();
+      if (stored && fact.kind === "capture") ledger.captures.set(fact.captureId, stored as LedgerCapture);
+      if (stored && fact.kind === "refund") ledger.refunds.set(fact.refundId, stored as LedgerRefund);
+      const changed = ledger.record(fact);
+      const merged = fact.kind === "capture" ? ledger.captures.get(fact.captureId) : ledger.refunds.get(fact.refundId);
+      tx.set(ref, { ...merged, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+      return changed;
     });
   },
 };
