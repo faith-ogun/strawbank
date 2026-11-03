@@ -19,6 +19,15 @@ const SIGN_IN_PROBLEMS: Record<string, string> = {
 
 const button = "block w-full rounded-full py-3.5 text-center font-semibold";
 
+/** The grower's pages; one that is not built yet is shown but not linked. */
+const GROWER_PAGES = (standId: string) => [
+  { href: "/grower/morning", label: "Morning set-up", hint: "Photograph the price card and the shelf", ready: false },
+  { href: "/grower/dusk", label: "Dusk report", hint: "What sold and what walked", ready: false },
+  { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you", ready: false },
+  { href: "/ledger", label: "Ledger", hint: "Every payment and refund", ready: false },
+  { href: `/s/${standId}`, label: "The stand page", hint: "What customers see", ready: true },
+];
+
 function DemoButton({ label }: { label: string }) {
   return (
     <form action="/api/auth/demo" method="post">
@@ -63,18 +72,19 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
           <p className="eyebrow text-straw-ink">Your stand</p>
           <h2 className="display text-xl text-ink">{stand.name}</h2>
           <nav className="mt-4 grid gap-2">
-            {[
-              ["/grower/morning", "Morning set-up", "Photograph the price card and the shelf"],
-              ["/grower/dusk", "Dusk report", "What sold and what walked"],
-              ["/grower/refunds", "Refunds", "Requests waiting for you"],
-              ["/ledger", "Ledger", "Every payment and refund"],
-              [`/s/${stand.id}`, "The stand page", "What customers see"],
-            ].map(([href, label, hint]) => (
-              <Link key={href} href={href} className="rounded-2xl bg-paper px-4 py-3">
-                <span className="block font-semibold text-ink">{label}</span>
-                <span className="block text-sm text-ink-3">{hint}</span>
-              </Link>
-            ))}
+            {GROWER_PAGES(stand.id).map(({ href, label, hint, ready }) =>
+              ready ? (
+                <Link key={href} href={href} className="rounded-2xl bg-paper px-4 py-3">
+                  <span className="block font-semibold text-ink">{label}</span>
+                  <span className="block text-sm text-ink-3">{hint}</span>
+                </Link>
+              ) : (
+                <div key={href} className="rounded-2xl border border-dashed border-line-2 px-4 py-3">
+                  <span className="block font-semibold text-ink-3">{label}</span>
+                  <span className="block text-sm text-ink-4">{hint} · coming this week</span>
+                </div>
+              ),
+            )}
           </nav>
         </div>
       ) : (

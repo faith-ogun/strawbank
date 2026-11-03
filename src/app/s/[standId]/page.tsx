@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -33,6 +34,12 @@ export default function StandPage({ params }: PageProps<"/s/[standId]">) {
       <Suspense fallback={<p className="mx-auto max-w-[480px] px-4 pt-10 text-ink-3">Opening the stand…</p>}>
         <Stand params={params} />
       </Suspense>
+      <p className="mx-auto max-w-[480px] px-4 pb-10 text-center text-sm text-ink-3">
+        Run a stand?{" "}
+        <Link href="/grower" className="font-semibold text-ink underline underline-offset-4">
+          See the grower&apos;s side
+        </Link>
+      </p>
     </main>
   );
 }
