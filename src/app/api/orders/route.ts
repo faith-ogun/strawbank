@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { findStand } from "@/lib/demo-stand";
+import { appUrl } from "@/lib/app-url";
+import { standToday } from "@/lib/days";
 import { MAX_QUANTITY, OrderError, buildLines, createOrderBody, orderTotalMinor } from "@/lib/orders";
 import { PayPalError, createPayPalOrder } from "@/lib/paypal/orders";
 
@@ -17,14 +18,14 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: "expected { standId, counts }" }, { status: 400 });
   const { standId, counts } = parsed.data;
 
-  const found = findStand(standId);
+  const found = await standToday(standId);
   if (!found) return Response.json({ error: `no stand "${standId}"` }, { status: 404 });
 
   try {
     const lines = buildLines(found.catalogue, counts);
     const reference = crypto.randomUUID();
     const body = createOrderBody(lines, found.stand.currency, reference);
-    const origin = new URL(request.url).origin;
+    const origin = appUrl();
     const order = await createPayPalOrder(
       body,
       { returnUrl: `${origin}/s/${standId}?paypal=approved`, cancelUrl: `${origin}/s/${standId}?paypal=cancelled` },

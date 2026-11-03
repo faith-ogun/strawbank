@@ -5,6 +5,7 @@
 // credentials, so these are plain requests.
 
 import { randomBytes } from "node:crypto";
+import { appUrl } from "../app-url";
 import { PAYPAL_API_BASE, paypalCredentials } from "./config";
 
 const AUTHORIZE_URL = "https://www.sandbox.paypal.com/connect";
@@ -13,8 +14,7 @@ const TIMEOUT_MS = 10_000;
 
 /** Where PayPal sends the grower back. Must match the app's Log in with PayPal "Return URL" exactly. */
 export function returnUrl(): string {
-  const base = process.env.APP_URL ?? "https://strawbank-434001576954.europe-west1.run.app";
-  return `${base}/api/auth/paypal/callback`;
+  return `${appUrl()}/api/auth/paypal/callback`;
 }
 
 export const newState = () => randomBytes(24).toString("base64url");

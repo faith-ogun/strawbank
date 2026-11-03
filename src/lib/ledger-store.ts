@@ -4,23 +4,13 @@
 // evals test (E4.4), and written back with the event id. Only what the ledger
 // needs is stored: no payer names or emails.
 
-import { FieldValue, Firestore } from "@google-cloud/firestore";
+import { FieldValue, type Firestore } from "@google-cloud/firestore";
+import { firestore } from "./firestore";
 import { factsFromWebhook, Ledger, type LedgerCapture, type LedgerFact, type LedgerRefund, type WebhookEvent } from "./ledger";
 
 const EVENTS = "ledgerEvents";
 const CAPTURES = "ledgerCaptures";
 const REFUNDS = "ledgerRefunds";
-
-let db: Firestore | undefined;
-
-function firestore(): Firestore {
-  // The app's own Google Cloud project; on Cloud Run it is found automatically.
-  db ??= new Firestore({
-    projectId: process.env.GOOGLE_CLOUD_PROJECT ?? process.env.GOOGLE_VERTEX_PROJECT,
-    ignoreUndefinedProperties: true,
-  });
-  return db;
-}
 
 const docFor = (store: Firestore, fact: LedgerFact) =>
   fact.kind === "capture" ? store.collection(CAPTURES).doc(fact.captureId) : store.collection(REFUNDS).doc(fact.refundId);

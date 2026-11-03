@@ -1,0 +1,48 @@
+import { z } from "zod";
+import { saveMorning, standDate } from "@/lib/days";
+import { growerStand } from "@/lib/grower-guard";
+import { toMinor } from "@/lib/money";
+
+// F1 step 3: the grower's confirmed prices and shelf count become the day's
+// list. Code turns each written price into money; the model never does.
+const MAX_STOCK = 999;
+const Input = z.object({
+  items: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+        name: z.string().trim().min(1).max(60),
+        price: z.string().regex(/^\d{1,4}(?:\.\d{1,2})?$/),
+      }),
+    )
+    .min(1)
+    .max(20),
+  counts: z.record(z.string(), z.number().int().min(0).max(MAX_STOCK)),
+});
+
+export async function POST(request: Request) {
+  const guard = await growerStand();
+  if ("refused" in guard) return guard.refused;
+  const parsed = Input.safeParse(await request.json().catch(() => undefined));
+  if (!parsed.success) return Response.json({ error: "expected { items: [{ key, name, price }], counts }" }, { status: 400 });
+  const { items, counts } = parsed.data;
+  if (new Set(items.map((i) => i.key)).size !== items.length) return Response.json({ error: "an item is listed twice" }, { status: 400 });
+
+  const standing = new Map(guard.catalogue.map((i) => [i.key, i]));
+  const catalogue = items.map(({ key, name, price }) => ({
+    key,
+    name,
+    unitMinor: toMinor(price),
+    ...(standing.get(key)?.looks && { looks: standing.get(key)!.looks }),
+  }));
+  if (catalogue.some((i) => i.unitMinor <= 0)) return Response.json({ error: "every item needs a price above zero" }, { status: 400 });
+
+  const date = standDate();
+  await saveMorning(guard.stand.id, {
+    date,
+    catalogue,
+    counts: Object.fromEntries(items.map(({ key }) => [key, counts[key] ?? 0])),
+    confirmedBy: guard.grower.growerId,
+  });
+  return Response.json({ opened: true, date, items: catalogue.length });
+}

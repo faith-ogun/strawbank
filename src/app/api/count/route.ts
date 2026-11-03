@@ -1,4 +1,4 @@
-import { findStand } from "@/lib/demo-stand";
+import { standToday } from "@/lib/days";
 import { SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
 
 // F2 step 2: a basket photo -> a count per item on today's list, with how sure
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "the photo must be a JPEG, PNG or WebP under 8 MB" }, { status: 400 });
   }
 
-  const found = findStand(standId);
+  const found = await standToday(standId);
   if (!found) return Response.json({ error: `no stand "${standId}"` }, { status: 404 });
 
   try {

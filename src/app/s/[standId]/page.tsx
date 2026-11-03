@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { StandShop } from "@/components/stand/stand-shop";
-import { findStand } from "@/lib/demo-stand";
+import { standToday } from "@/lib/days";
 import { paypalCredentials } from "@/lib/paypal/config";
 
 // F2. The customer scans the stand's QR code, photographs the basket, checks
@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Strawbank · pay at the stand" };
 
 async function Stand({ params }: { params: PageProps<"/s/[standId]">["params"] }) {
   const { standId } = await params;
-  const found = findStand(standId);
+  const found = await standToday(standId);
   if (!found) notFound();
   return (
     <StandShop
