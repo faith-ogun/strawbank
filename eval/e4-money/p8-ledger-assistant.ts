@@ -81,6 +81,16 @@ const callsBeforeResults = fc.property(turnsCase, (turns) => {
   }
   const all = input.flatMap((item) => (item.type === "function_call" ? [item.callId] : []));
   assert(all.every((id) => answered.has(id)) && answered.size === all.length, "a call went missing or was sent twice");
+
+  // One model turn's calls travel together: Gemini wants them all before any result.
+  const messageOf = new Map<string, number>();
+  messages.forEach((m, i) => {
+    if (m.role === "assistant" && typeof m.content !== "string") for (const p of m.content) if (p.type === "tool-call") messageOf.set(p.toolCallId, i);
+  });
+  turns.forEach((turn, t) => {
+    const where = new Set(Array.from({ length: turn.calls }, (_, c) => messageOf.get(`t${t}c${c}`)));
+    assert(where.size === 1, `turn ${t}'s calls were split across ${where.size} messages`);
+  });
 });
 
 export const p8 = [

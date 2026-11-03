@@ -29,7 +29,7 @@
   <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/eval_E4-18_properties,_0_failures-2ea043" alt="eval E4: 18 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E4-22_properties,_0_failures-2ea043" alt="eval E4: 22 properties, 0 failures">
   <img src="https://img.shields.io/badge/eval_E5-20_of_20_days-2ea043" alt="eval E5: 20 of 20 days">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
@@ -39,8 +39,8 @@
 
 > **Status: in development.** Working in the PayPal sandbox today:
 > - **The customer's side:** the stand page, the basket count and PayPal checkout. The receipt has "Something's wrong with this?", where the agent recounts the basket photo and refunds small, clear cases itself.
-> - **The grower's side:** sign-in, the morning set-up, the dusk report ("what sold and what walked"), the refunds queue and the next-morning audit against PayPal's Transaction Search.
-> - **The ledger page (AG Studio)** is being built.
+> - **No PayPal to hand?** The customer leaves an IOU: an email address, and PayPal sends them an invoice for the basket at the stand's prices. The grower can remind them, record cash, or cancel it.
+> - **The grower's side:** sign-in, the morning set-up, the dusk report ("what sold and what walked"), the refunds queue, the IOUs, the next-morning audit against PayPal's Transaction Search, and the ledger in AG Studio, with an assistant that builds widgets from a question.
 >
 > This README only claims what works, and every result in it comes from `npm run eval`.
 >
@@ -74,6 +74,7 @@ At dusk, one more photo of the shelf, and the grower gets the day's truth in pla
 |---|---|---|---|
 | **Morning:** the grower photographs the price card and the shelf | reads the prices, counts the stock | nothing is for sale until the grower confirms | each new item becomes a catalogue product |
 | **A customer:** scans the QR code, photographs the basket | counts the basket, with how sure it is | the customer has the final word; code works out the total | an order with one line per item, then the capture |
+| **No PayPal to hand:** the customer leaves an IOU | | prices the basket exactly as an order would; the dusk report counts it as a payment on its way, never as walked | an invoice, sent by PayPal, paid later through PayPal or recorded as cash |
 | **Something's wrong:** "I took one jar, not two" | recounts the stored photo | works out the refund, its cap, and who decides | the agent refunds small, clear cases within the grower's limit |
 | **Dusk:** the grower photographs the shelf | counts what is left, then explains the day | taken minus paid, per item; an unsure count says "uncertain", never "missing" | our ledger, built from signed webhooks |
 | **Next morning** | | compares our ledger with PayPal's records | Transaction Search |
@@ -95,11 +96,17 @@ grower's page and on each receipt. "Seen working" is the date it last ran in the
 | Confirm a webhook's signature | `POST /v1/notifications/verify-webhook-signature` | REST | `src/lib/paypal/webhooks.ts` | 3 Nov (a real refund event confirmed; a forged one refused) |
 | List the day's items as products | `POST /v1/catalogs/products` | Agent Toolkit `create_product` | `src/lib/paypal/catalog.ts` | 3 Nov |
 | The next-morning audit | `GET /v1/reporting/transactions` | PayPal Server SDK | `src/lib/paypal/transactions.ts` | 3 Nov |
+| Write an IOU as an invoice, one line per item | `POST /v2/invoicing/invoices` | REST, with the SDK's token | `src/lib/paypal/invoices.ts` | 3 Nov |
+| Send it: PayPal emails the customer a pay link | `POST /v2/invoicing/invoices/{id}/send` | REST | `src/lib/paypal/invoices.ts` | 3 Nov |
+| Remind the customer | `POST /v2/invoicing/invoices/{id}/remind` | REST | `src/lib/paypal/invoices.ts` | 3 Nov |
+| Record cash paid at the stand | `POST /v2/invoicing/invoices/{id}/payments` | REST | `src/lib/paypal/invoices.ts` | 3 Nov |
+| Read an IOU's status for the customer | `GET /v2/invoicing/invoices/{id}` | REST | `src/lib/paypal/invoices.ts` | 3 Nov |
+| Cancel an IOU | `POST /v2/invoicing/invoices/{id}/cancel` | REST | `src/lib/paypal/invoices.ts` | not yet |
 | Grower sign-in | `/connect`, `POST /v1/oauth2/token`, `GET /v1/identity/oauth2/userinfo` | REST | `src/lib/paypal/login.ts` | not yet: waits for the app's Log in with PayPal setting |
 
 Webhook events received: payment captured, denied, declined, refunded and reversed; order
-approved and completed. Each one is applied to the ledger once, whatever order it arrives in
-(eval E4.4).
+approved and completed; invoice paid and cancelled (added 3 Nov, none received yet). Each one
+is applied to the ledger once, whatever order it arrives in (eval E4.4).
 
 ---
 
@@ -108,10 +115,11 @@ approved and completed. Each one is applied to the ledger once, whatever order i
 The AI reads, counts and explains. **Every total, refund, cap and gap is plain code**,
 because if the same input must always give the same answer, a guess is not good enough.
 Even the AI's dusk explanation is checked: any number in it that code did not compute, and
-the AI's words are replaced by a plain template.
+the AI's words are replaced by a plain template. The ledger's assistant gets the same check:
+any number in its words that the ledger's own tools did not return, and code's line replaces it.
 
-That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 18
-properties, each tried against generated cases (fast-check), on **16,002 cases with 0
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 22
+properties, each tried against generated cases (fast-check), on **19,050 cases with 0
 failures** (scorecard `eval/results/2026-11-03.json`).
 
 | Id | The property |
@@ -134,10 +142,14 @@ failures** (scorecard `eval/results/2026-11-03.json`).
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |
 | E4.7 | A grower session opens only if the server sealed it, unaltered and in date (the grower's pages hold refund approvals) |
+| E4.8 | The ledger's AI assistant shows only numbers the ledger's own tools returned or the grower wrote |
+| E4.9 | Each Gemini turn's tool calls reach Gemini before their results, signed as received, none lost |
+| E4.10 | An IOU invoice asks for exactly what an order for the same basket would, to the address given |
+| E4.11 | An IOU counts as paid only when PayPal says it was paid or the grower recorded cash |
 
 The tests were checked by planting bugs in the money code (a total off by a cent, a refund
 limit off by a cent, a missing duplicate check, a ledger that counts a repeat twice); each
-planted bug made a property fail.
+planted bug made a property fail. On 3 Nov the same was done for E4.8 to E4.11 (an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, a Gemini turn's calls split or unsigned); each was caught.
 
 Basket counting (eval **E1**) runs on real photos of eggs, onions and potatoes, loose,
 in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted 9
@@ -145,7 +157,7 @@ exactly** (one run earlier that day counted all 10), and no basket was off by mo
 item. The grower's side is measured the same way:
 
 - **E2, the price card:** read exactly, 3 of 3 lines.
-- **E3, shelf counts:** in the first run, both shelf photos were counted exactly (8 of 8 item counts). In the latest run, one photo timed out after 75 seconds and counted nothing, so it scored 4 of 8. In the app, the same photo was counted exactly in about 9 seconds that day, and a grower whose count times out can count by hand.
+- **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). One earlier run the same day timed out on one photo after 75 seconds; a grower whose count times out can count by hand.
 
 All three are provisional until every photo is in.
 
@@ -164,11 +176,14 @@ Agent safety (E6) waits for its last trap photos. Every eval is described in
 The stack, as each part lands:
 
 - **PayPal, sandbox only:** Orders v2 with itemised lines and capture, Payments v2 refunds,
-  Catalog Products, Transaction Search, signed webhooks, the PayPal JS SDK, the PayPal Agent
+  Invoicing v2 for the IOU, Catalog Products, Transaction Search, signed webhooks, the PayPal JS SDK, the PayPal Agent
   Toolkit for the agent's tools, and the PayPal Server SDK, written with the **APIMatic
   Context Plugin**.
 - **Gemini** on Google Vertex AI, through the Vercel AI SDK: reading, counting, explaining.
-- **AG Studio** by AG Grid: the grower's ledger dashboard and its agent.
+- **AG Studio** by AG Grid: the grower's ledger. Four pre-built pages, the stand's own theme,
+  a custom "paid versus taken" widget that filters the page by item, and Strawbank's own agent,
+  which hands the building to Studio's planning, page, widget and data agents. Every agent runs
+  on Gemini through our own adapter (`src/components/ledger/gemini-adapter.ts`).
 - **Next.js 16** (TypeScript), hosted on Google Cloud Run.
 
 ---
@@ -205,6 +220,9 @@ login for judges: to come.
 | `src/lib/reconcile.ts`, `src/lib/dusk.ts` | taken, paid and gap per item at dusk, from the day's orders and PayPal's word on each |
 | `src/lib/refund-flow.ts`, `src/lib/refund-store.ts` | a customer's claim, the agent's recount, code's decision, one Firestore transaction per refund |
 | `src/lib/audit.ts` | the next-morning audit: the ledger against PayPal's Transaction Search |
+| `src/lib/ious.ts`, `src/lib/iou-flow.ts`, `src/lib/paypal/invoices.ts` | the IOU: the invoice body (same prices as an order), PayPal Invoicing, and PayPal's word on each |
+| `src/lib/ledger-rows.ts`, `src/components/ledger/` | the ledger in AG Studio: rows built by code, the report, the custom widget, the agent and its Gemini adapter |
+| `src/lib/ai/studio-turn.ts` | one turn of the ledger's agents on Gemini; any number in their words must be one the ledger's tools returned |
 | `src/lib/sales.ts`, `src/lib/photos.ts` | each order and basket count, and the photo kept as evidence for 30 days |
 | `src/lib/explain-check.ts` | rejects AI text with a number code did not compute |
 | `src/agent/tools.ts` | the agent's PayPal tool allowlist |

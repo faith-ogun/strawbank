@@ -73,10 +73,14 @@ EVAL_SEED=123456 npm run eval
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |
 | E4.7 | A grower session opens only if the server sealed it, unaltered and in date |
+| E4.8 | The ledger's AI assistant (AG Studio's agents on Gemini) shows only numbers the ledger's own tools returned or the grower wrote; anything else is replaced by code's line |
+| E4.9 | Each Gemini turn's tool calls reach Gemini before their results, each with its thought signature as received, none lost or sent twice |
+| E4.10 | An IOU invoice asks for exactly what an order for the same basket would: the stand's prices, line by line, one currency, no tip, no part payment, to the address given |
+| E4.11 | An IOU counts as paid only when PayPal says it was paid or the grower recorded cash |
 
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
-capture, and so on); each planted bug made at least one property fail.
+capture, and so on); each planted bug made at least one property fail. E4.8 to E4.11 were checked the same way on 3 Nov: an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, and a Gemini turn's calls split or sent without their signatures. Each was caught. (The first version of E4.9 missed the split calls; it was strengthened.)
 
 ## E5: reconciliation days
 
