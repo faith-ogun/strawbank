@@ -1,10 +1,10 @@
 {
   "date": "2026-11-03",
-  "ranAt": "2026-11-03T10:29:42.471Z",
-  "commit": "ef750eb",
-  "uncommittedChanges": false,
+  "ranAt": "2026-11-03T13:19:37.146Z",
+  "commit": "bfbe535",
+  "uncommittedChanges": true,
   "node": "v24.10.0",
-  "seed": 1293219071,
+  "seed": 576594404,
   "runsPerProperty": 1000,
   "truthFiles": {
     "baskets": {
@@ -30,9 +30,9 @@
   },
   "truthErrors": [],
   "summary": {
-    "pass": 1,
+    "pass": 3,
     "fail": 0,
-    "skip": 6
+    "skip": 4
   },
   "results": [
     {
@@ -44,14 +44,14 @@
       "metrics": {
         "cases": 10,
         "errors": 0,
-        "exact": 10,
-        "exactRate": 1,
-        "meanItemError": 0,
-        "worstError": 0,
+        "exact": 9,
+        "exactRate": 0.9,
+        "meanItemError": 0.025,
+        "worstError": 1,
         "offByMoreThanOne": 0,
         "sure": 10,
-        "sureExact": 10,
-        "sureExactRate": 1,
+        "sureExact": 9,
+        "sureExactRate": 0.9,
         "expected": 40
       },
       "cases": [
@@ -84,7 +84,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2263
+          "ms": 2424
         },
         {
           "id": "basket-002",
@@ -115,7 +115,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2276
+          "ms": 2500
         },
         {
           "id": "basket-003",
@@ -146,7 +146,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2236
+          "ms": 2314
         },
         {
           "id": "basket-004",
@@ -177,7 +177,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2492
+          "ms": 2464
         },
         {
           "id": "basket-005",
@@ -209,7 +209,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1202
+          "ms": 1284
         },
         {
           "id": "basket-006",
@@ -240,7 +240,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2403
+          "ms": 1522
         },
         {
           "id": "basket-007",
@@ -273,7 +273,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1693
+          "ms": 1605
         },
         {
           "id": "basket-008",
@@ -282,7 +282,7 @@
             "onion": 4
           },
           "counted": {
-            "egg": 4,
+            "egg": 5,
             "onion": 4,
             "potato": 0,
             "jam": 0
@@ -291,7 +291,7 @@
           "confidence": 1,
           "reply": {
             "counts": {
-              "egg": 4,
+              "egg": 5,
               "onion": 4,
               "potato": 0,
               "jam": 0
@@ -305,7 +305,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1536
+          "ms": 1723
         },
         {
           "id": "basket-009",
@@ -337,7 +337,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2033
+          "ms": 1682
         },
         {
           "id": "basket-010",
@@ -370,7 +370,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1235
+          "ms": 1288
         }
       ]
     },
@@ -418,11 +418,11 @@
                 "confidence": 0.95
               },
               {
-                "text": "Onion, each €0.30",
+                "text": "Oniom, each €0.30",
                 "key": "onion",
-                "name": "Onion, each",
+                "name": "Onions, each",
                 "price": "0.30",
-                "confidence": 0.95
+                "confidence": 0.9
               },
               {
                 "text": "Potatoes, each €0.20.",
@@ -436,7 +436,7 @@
           },
           "exact": true,
           "caughtByGrower": true,
-          "ms": 6550
+          "ms": 2798
         }
       ]
     },
@@ -448,10 +448,10 @@
       "reason": "provisional: 2 of 20 shelf photos; the target is judged once all are in",
       "metrics": {
         "photos": 2,
-        "errors": 0,
+        "errors": 1,
         "itemCounts": 8,
-        "exactCounts": 8,
-        "exactRate": 1,
+        "exactCounts": 4,
+        "exactRate": 0.5,
         "meanItemError": 0,
         "wrongCounts": 0,
         "unsureWhenWrong": 1,
@@ -460,30 +460,13 @@
       "cases": [
         {
           "id": "day-01-dusk",
-          "day": "day-01",
-          "time": "dusk",
           "truth": {
             "egg": 2,
             "onion": 1,
             "potato": 3
           },
-          "reply": {
-            "counts": {
-              "egg": 2,
-              "onion": 1,
-              "potato": 3,
-              "jam": 0
-            },
-            "confidence": {
-              "egg": 1,
-              "onion": 1,
-              "potato": 1,
-              "jam": 1
-            },
-            "notes": {},
-            "unlisted": []
-          },
-          "ms": 7644
+          "error": "TimeoutError: The operation was aborted due to timeout",
+          "ms": 75012
         },
         {
           "id": "day-01-morning",
@@ -510,7 +493,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 8765
+          "ms": 9141
         }
       ]
     },
@@ -530,137 +513,310 @@
           "claim": "Order total = sum of lines (quantity x price) = PayPal item_total, in minor units",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219071
+          "seed": 576594404
         },
         {
           "id": "E4.1b",
           "claim": "A basket with an unknown item or a quantity that is not a whole number from 0 to 99 never becomes an order",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219072
+          "seed": 576594405
         },
         {
           "id": "E4.1c",
           "claim": "The PayPal SDK request carries the order body's amounts and lines unchanged",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219073
+          "seed": 576594406
         },
         {
           "id": "E4.2",
           "claim": "A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219074
+          "seed": 576594407
         },
         {
           "id": "E4.2b",
           "claim": "Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219075
+          "seed": 576594408
         },
         {
           "id": "E4.2c",
           "claim": "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219076
+          "seed": 576594409
         },
         {
           "id": "E4.3",
           "claim": "The same refund request never produces two refunds",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219077
+          "seed": 576594410
         },
         {
           "id": "E4.4",
           "claim": "A duplicate or late webhook never changes the ledger twice",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219078
+          "seed": 576594411
         },
         {
           "id": "E4.4b",
           "claim": "Only a webhook PayPal confirms as signed reaches the ledger, and only once",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219079
+          "seed": 576594412
         },
         {
           "id": "E4.5",
           "claim": "The model's text never introduces a number that is not in the computed reconciliation",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219080
+          "seed": 576594413
         },
         {
           "id": "E4.5b",
           "claim": "Text that uses only computed numbers passes the check",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219081
+          "seed": 576594414
         },
         {
           "id": "E4.5c",
           "claim": "Whatever the model writes, the text shown contains only computed numbers, and the fallback always passes",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219082
+          "seed": 576594415
         },
         {
           "id": "E4.5d",
           "claim": "No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219083
+          "seed": 576594416
         },
         {
           "id": "E4.5e",
           "claim": "A plain counting note, with no money in it, is shown as written",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219084
+          "seed": 576594417
         },
         {
           "id": "E4.6",
           "claim": "The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools",
           "runs": 1,
           "passed": true,
-          "seed": 1293219085
+          "seed": 576594418
         },
         {
           "id": "E4.6b",
           "claim": "The agent never calls a tool outside its allowlist",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219086
+          "seed": 576594419
         },
         {
           "id": "E4.6c",
           "claim": "No tool handed to the model can move money; refunds run only from code",
           "runs": 1,
           "passed": true,
-          "seed": 1293219087
+          "seed": 576594420
         },
         {
           "id": "E4.7",
           "claim": "A grower session opens only if the server sealed it, unaltered and in date",
           "runs": 1000,
           "passed": true,
-          "seed": 1293219088
+          "seed": 576594421
         }
       ]
     },
     {
       "id": "E5",
       "title": "Reconciliation days",
-      "target": "20 of 20 days with taken, paid and gap exactly right",
-      "status": "skip",
-      "reason": "needs inputs that do not exist yet",
-      "needs": [
-        "20 simulated days in eval/truth/days/ (found 0; the day format is defined with E5)"
+      "target": "20 of 20 days with taken, paid and gap exactly right; nobody wrongly accused",
+      "status": "pass",
+      "metrics": {
+        "days": 20,
+        "exactDays": 20,
+        "items": 80,
+        "wrongAccusations": 0,
+        "walks": 14,
+        "walksCaught": 14
+      },
+      "cases": [
+        {
+          "day": "2026-10-01",
+          "scenario": [],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-02",
+          "scenario": [
+            "walker"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-03",
+          "scenario": [
+            "underpay"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-04",
+          "scenario": [
+            "restock"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-05",
+          "scenario": [
+            "refund"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-06",
+          "scenario": [
+            "pending"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-07",
+          "scenario": [
+            "denied"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-08",
+          "scenario": [
+            "unsure"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-09",
+          "scenario": [
+            "abandoned"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-10",
+          "scenario": [
+            "walker",
+            "restock"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-11",
+          "scenario": [
+            "underpay",
+            "refund"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-12",
+          "scenario": [
+            "pending",
+            "walker"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-13",
+          "scenario": [
+            "overpay"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-14",
+          "scenario": [
+            "refund",
+            "pending"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-15",
+          "scenario": [
+            "denied",
+            "restock"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-16",
+          "scenario": [
+            "unsure",
+            "walker"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-17",
+          "scenario": [],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-18",
+          "scenario": [
+            "walker",
+            "walker"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-19",
+          "scenario": [
+            "restock",
+            "refund",
+            "pending"
+          ],
+          "ok": true,
+          "problems": []
+        },
+        {
+          "day": "2026-10-20",
+          "scenario": [
+            "underpay",
+            "denied",
+            "unsure"
+          ],
+          "ok": true,
+          "problems": []
+        }
       ]
     },
     {
@@ -677,11 +833,73 @@
     {
       "id": "E7",
       "title": "Next-morning audit",
-      "target": "both planted differences flagged, nothing else",
-      "status": "skip",
-      "reason": "needs inputs that do not exist yet",
-      "needs": [
-        "a finished sandbox day with Transaction Search turned on (it can take up to 3 hours to show transactions)"
+      "target": "every planted difference flagged, nothing else (7 scenarios; the live sandbox day follows)",
+      "status": "pass",
+      "metrics": {
+        "scenarios": 7,
+        "exact": 7
+      },
+      "cases": [
+        {
+          "scenario": "everything agrees",
+          "ok": true,
+          "flagged": [],
+          "planted": []
+        },
+        {
+          "scenario": "agrees, with a refund made through Strawbank",
+          "ok": true,
+          "flagged": [],
+          "planted": []
+        },
+        {
+          "scenario": "E7 as specified: a capture removed from the ledger, and a refund made in PayPal",
+          "ok": true,
+          "flagged": [
+            "missing-in-ledger:payment:C3",
+            "missing-in-ledger:refund:R9"
+          ],
+          "planted": [
+            "missing-in-ledger:payment:C3",
+            "missing-in-ledger:refund:R9"
+          ]
+        },
+        {
+          "scenario": "an amount differs",
+          "ok": true,
+          "flagged": [
+            "amount-differs:payment:C2"
+          ],
+          "planted": [
+            "amount-differs:payment:C2"
+          ]
+        },
+        {
+          "scenario": "the ledger has a payment PayPal does not show",
+          "ok": true,
+          "flagged": [
+            "missing-in-paypal:payment:C4"
+          ],
+          "planted": [
+            "missing-in-paypal:payment:C4"
+          ]
+        },
+        {
+          "scenario": "a refund in the ledger that PayPal does not show",
+          "ok": true,
+          "flagged": [
+            "missing-in-paypal:refund:R2"
+          ],
+          "planted": [
+            "missing-in-paypal:refund:R2"
+          ]
+        },
+        {
+          "scenario": "a denied capture is not expected in PayPal's successes",
+          "ok": true,
+          "flagged": [],
+          "planted": []
+        }
       ]
     }
   ]

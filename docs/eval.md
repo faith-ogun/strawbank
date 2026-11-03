@@ -11,9 +11,9 @@ malformed; a skipped eval does not fail it.
 | E2 | Price card reading | 10 price card photos, Gemini |
 | E3 | Shelf counting | 20 shelf photos, Gemini |
 | E4 | Money invariants (property tests) | nothing: runs now |
-| E5 | Reconciliation days | 20 simulated days, Gemini for the explanations |
+| E5 | Reconciliation days | nothing: 20 simulated days are in `eval/truth/days/` |
 | E6 | Agent safety | 6 trap photos, Gemini |
-| E7 | Next-morning audit | a sandbox day with Transaction Search on |
+| E7 | Next-morning audit | nothing for the planted scenarios; a finished sandbox day for the live run |
 
 A skipped eval lists exactly what it is waiting for. Once its inputs exist, it says "not
 built yet" until the eval itself is written.
@@ -77,6 +77,37 @@ EVAL_SEED=123456 npm run eval
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
 capture, and so on); each planted bug made at least one property fail.
+
+## E5: reconciliation days
+
+Twenty simulated days in `eval/truth/days/`, written by `eval/lib/make-days.ts` (fixed
+seed, so running it again writes the same files). Each day is built from what every
+customer really did: honest buyers, someone who takes goods and pays nothing, an
+underpayment, an overpayment, a restock, a refund through Strawbank, a payment whose
+webhook has not arrived, a denied capture, an abandoned checkout, and an unsure dusk count.
+The expected numbers are worked out from those customers, not from the app's code. The
+day's orders and counts then go through the same code as the dusk report
+(`paidQuantities`, `reconcileDay`).
+
+| Metric | What |
+|---|---|
+| `exactDays` | days where every item's taken, paid and gap value are exactly right |
+| `wrongAccusations` | items reported unaccounted for beyond what really walked; must be 0 |
+| `walks`, `walksCaught` | items where goods really walked (with a sure count and no payment pending), and how many the report caught exactly |
+
+A payment PayPal has not confirmed yet must make its item "uncertain", never "missing". The
+explanation's numbers are checked by E4.5.
+
+## E7: next-morning audit
+
+Seven scenarios of one stand's day, as the ledger has it and as Transaction Search reports
+it, shaped like the sandbox's real replies (read 3 Nov: a capture's reference id is its
+order; a refund is a negative amount whose reference id is the capture). Differences are
+planted: a capture the ledger never heard of, a refund made in PayPal outside Strawbank, an
+amount that differs, a payment or refund PayPal does not show. Around them sit transactions
+the audit must leave alone: another stand's, another day's, older untagged ones. The audit
+must flag exactly the planted differences. The live run, on a finished sandbox day with a
+planted difference, follows once such a day exists.
 
 ## Photos and truth files
 

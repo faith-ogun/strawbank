@@ -30,19 +30,19 @@
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
   <img src="https://img.shields.io/badge/eval_E4-18_properties,_0_failures-2ea043" alt="eval E4: 18 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E5-20_of_20_days-2ea043" alt="eval E5: 20 of 20 days">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
 </p>
 
 ---
 
-> **Status: in development.** The money code is written and tested (eval E4, below), and a
-> sandbox order with one line per item is created and captured through the PayPal Server SDK,
-> and partial refunds go through the PayPal Agent Toolkit with the amount code decided. The
-> customer's stand page and receipt are live, with sandbox payments, and PayPal's signed
-> webhooks feed the ledger (each signature confirmed by PayPal before anything is stored).
-> The grower and ledger pages are being built. This README only claims what works, and every result in it comes
-> from `npm run eval`.
+> **Status: in development.** Working in the PayPal sandbox today:
+> - **The customer's side:** the stand page, the basket count and PayPal checkout. The receipt has "Something's wrong with this?", where the agent recounts the basket photo and refunds small, clear cases itself.
+> - **The grower's side:** sign-in, the morning set-up, the dusk report ("what sold and what walked"), the refunds queue and the next-morning audit against PayPal's Transaction Search.
+> - **The ledger page (AG Studio)** is being built.
+>
+> This README only claims what works, and every result in it comes from `npm run eval`.
 >
 > **Try it on a phone:** [the demo stand](https://strawbank-434001576954.europe-west1.run.app/s/demo).
 > Payments are PayPal sandbox only; no real money moves.
@@ -116,15 +116,23 @@ The tests were checked by planting bugs in the money code (a total off by a cent
 limit off by a cent, a missing duplicate check, a ledger that counts a repeat twice); each
 planted bug made a property fail.
 
-Basket counting (eval **E1**) now runs on real photos of eggs, onions and potatoes, loose,
-in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted all
-10 exactly**; earlier runs the same day missed one egg in a pile of eight, so 9 of 10 is the
-honest floor. The grower's side is measured the same way: the price card was read exactly
-(eval **E2**, 3 of 3 lines) and both shelf photos were counted exactly (eval **E3**, 8 of 8
-item counts). All provisional until every photo is in (scorecard
-`eval/results/2026-11-03.json`). The other evals (whole simulated days, agent safety, the
-next-morning audit) are defined in
-[docs/eval.md](docs/eval.md) and switch on as their photos and features arrive.
+Basket counting (eval **E1**) runs on real photos of eggs, onions and potatoes, loose,
+in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted 9
+exactly** (one run earlier that day counted all 10), and no basket was off by more than one
+item. The grower's side is measured the same way:
+
+- **E2, the price card:** read exactly, 3 of 3 lines.
+- **E3, shelf counts:** in the first run, both shelf photos were counted exactly (8 of 8 item counts). In the latest run, one photo timed out after 75 seconds and counted nothing, so it scored 4 of 8. In the app, the same photo was counted exactly in about 9 seconds that day, and a grower whose count times out can count by hand.
+
+All three are provisional until every photo is in.
+
+Two evals check whole days with no model at all:
+
+- **E5, the dusk report:** twenty simulated days built from what each customer really did. They include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed yet and an unsure count. **20 of 20 days are exactly right, with 0 wrong accusations.** A payment PayPal has not confirmed makes its item "uncertain", never "missing".
+- **E7, the next-morning audit:** seven days with planted differences between our ledger and PayPal's Transaction Search, among other stands' and days' transactions. **7 of 7 flagged exactly the planted differences**, and nothing else.
+
+Agent safety (E6) waits for its last trap photos. Every eval is described in
+[docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-03.json`).
 
 ---
 
@@ -166,12 +174,15 @@ login for judges: to come.
 |---|---|
 | `src/lib/money.ts` | money as whole minor units; decimal strings only at the edges |
 | `src/lib/orders.ts` | counts x confirmed prices, order lines, the Orders v2 body |
-| `src/lib/paypal/` | the PayPal Server SDK client (sandbox only); order create, capture and get; the refund gateway |
+| `src/lib/paypal/` | the PayPal Server SDK client (sandbox only); order create, capture and get; Transaction Search; the refund gateway and catalogue products (Agent Toolkit); Log in with PayPal |
 | `src/lib/refunds.ts` | refund amount, cap and who decides; at most one refund per request |
 | `src/lib/ledger.ts` | the webhook ledger; repeated or late webhooks change nothing |
 | `src/lib/webhook.ts`, `src/lib/paypal/webhooks.ts` | the webhook route: PayPal confirms each signature (`verify-webhook-signature`) before anything is stored |
 | `src/lib/ledger-store.ts` | the ledger in Firestore: one transaction per event, keyed by its id |
-| `src/lib/reconcile.ts` | taken, paid and gap per item at dusk |
+| `src/lib/reconcile.ts`, `src/lib/dusk.ts` | taken, paid and gap per item at dusk, from the day's orders and PayPal's word on each |
+| `src/lib/refund-flow.ts`, `src/lib/refund-store.ts` | a customer's claim, the agent's recount, code's decision, one Firestore transaction per refund |
+| `src/lib/audit.ts` | the next-morning audit: the ledger against PayPal's Transaction Search |
+| `src/lib/sales.ts`, `src/lib/photos.ts` | each order and basket count, and the photo kept as evidence for 30 days |
 | `src/lib/explain-check.ts` | rejects AI text with a number code did not compute |
 | `src/agent/tools.ts` | the agent's PayPal tool allowlist |
 | `src/agent/toolkit.ts` | the PayPal Agent Toolkit, sandbox only, adapted to AI SDK v7; money tools never reach the model |
