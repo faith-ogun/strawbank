@@ -1,3 +1,4 @@
+import { applyDisputeEvent } from "@/lib/dispute-flow";
 import { applyInvoiceEvent } from "@/lib/iou-flow";
 import { firestoreLedger } from "@/lib/ledger-store";
 import { noted } from "@/lib/paypal/calls";
@@ -8,8 +9,9 @@ import { handlePayPalWebhook } from "@/lib/webhook";
 // /v1/notifications/verify-webhook-signature before Ledger.apply. PayPal
 // resends anything that does not get a 2xx, for up to three days. Each check
 // is noted with the PayPal call log; a capture names its stand in custom_id,
-// an IOU invoice in its reference. An invoice event also updates its IOU,
-// before the ledger records the event, so a retry after a failure still lands.
+// an IOU invoice in its reference. An invoice event also updates its IOU, and
+// a dispute event holds or releases the basket photo, before the ledger
+// records the event, so a retry after a failure still lands.
 export async function POST(request: Request) {
   const raw = await request.text();
   let event: {
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
     store: {
       async apply(verified) {
         await applyInvoiceEvent(verified);
+        await applyDisputeEvent(verified);
         return firestoreLedger.apply(verified);
       },
     },

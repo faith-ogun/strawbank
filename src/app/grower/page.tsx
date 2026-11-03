@@ -27,6 +27,7 @@ const GROWER_PAGES = (standId: string) => [
   { href: "/grower/dusk", label: "Dusk report", hint: "What sold and what walked", ready: true },
   { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you", ready: true },
   { href: "/grower/ious", label: "IOUs", hint: "Baskets on a PayPal invoice, paid later", ready: true },
+  { href: "/grower/disputes", label: "Disputes", hint: "Answer PayPal with the basket photo and your record", ready: true },
   { href: "/grower/audit", label: "Next-morning audit", hint: "Does PayPal agree with the ledger?", ready: true },
   { href: "/grower/ledger", label: "Ledger", hint: "Every payment, refund and PayPal call, in AG Studio", ready: true },
   { href: `/s/${standId}`, label: "The stand page", hint: "What customers see", ready: true },
