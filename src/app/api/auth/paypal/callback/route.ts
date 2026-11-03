@@ -1,13 +1,14 @@
 import { cookies } from "next/headers";
 import { growerFromPayPal } from "@/lib/growers";
 import { personFromCode } from "@/lib/paypal/login";
+import { seeOther } from "@/lib/see-other";
 import { startSession } from "@/lib/session";
 
 // Step 2 of Log in with PayPal: PayPal sends the grower back here with a code.
 // The state must match the cookie set in step 1, or nothing happens.
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const back = (problem: string) => Response.redirect(new URL(`/grower?signin=${problem}`, url), 303);
+  const back = (problem: string) => seeOther(`/grower?signin=${problem}`);
 
   const jar = await cookies();
   const expected = jar.get("sb_login_state")?.value;
@@ -23,5 +24,5 @@ export async function GET(request: Request) {
     console.error("Log in with PayPal failed", error);
     return back("failed");
   }
-  return Response.redirect(new URL("/grower", url), 303);
+  return seeOther("/grower");
 }

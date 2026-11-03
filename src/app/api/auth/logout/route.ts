@@ -1,6 +1,7 @@
+import { seeOther } from "@/lib/see-other";
 import { endSession } from "@/lib/session";
 
-export async function POST(request: Request) {
+export async function POST() {
   await endSession();
-  return Response.redirect(new URL("/grower", request.url), 303);
+  return seeOther("/grower");
 }
