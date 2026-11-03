@@ -141,8 +141,9 @@ const REFUND_STATUSES: RefundStatus[] = ["PENDING", "COMPLETED", "FAILED", "CANC
 
 /**
  * Webhook event -> ledger facts. Payload shapes follow PayPal's documented
- * capture and refund resources; check them against a real sandbox event in
- * spike S1 before relying on them.
+ * capture and refund resources. The refund shape was confirmed by a real
+ * signed sandbox PAYMENT.CAPTURE.REFUNDED event on 3 Nov; the capture shape
+ * waits for the first PAYMENT.CAPTURE.COMPLETED.
  */
 export function factsFromWebhook(event: WebhookEvent): LedgerFact[] {
   const resource = event.resource;

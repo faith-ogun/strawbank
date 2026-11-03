@@ -63,6 +63,7 @@ EVAL_SEED=123456 npm run eval
 | E4.2c | A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending |
 | E4.3 | The same refund request never produces two refunds |
 | E4.4 | A duplicate or late webhook never changes the ledger twice |
+| E4.4b | Only a webhook PayPal confirms as signed reaches the ledger, and only once; anything that is not a PayPal event is refused |
 | E4.5 | The model's text never introduces a number that is not in the computed reconciliation |
 | E4.5b | Text that uses only computed numbers passes the check |
 | E4.5c | Whatever the model writes, the text shown contains only computed numbers |

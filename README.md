@@ -100,6 +100,7 @@ failures** (scorecard `eval/results/2026-10-28.json`).
 | E4.2c | A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending |
 | E4.3 | The same refund request never produces two refunds |
 | E4.4 | A duplicate or late webhook never changes the ledger twice |
+| E4.4b | Only a webhook PayPal confirms as signed reaches the ledger, and only once |
 | E4.5 | The AI's text never introduces a number that is not in the computed reconciliation |
 | E4.5b | Text that uses only computed numbers passes the check |
 | E4.5c | Whatever the AI writes, the text shown contains only computed numbers |
@@ -163,6 +164,8 @@ login for judges: to come.
 | `src/lib/paypal/` | the PayPal Server SDK client (sandbox only); order create, capture and get; the refund gateway |
 | `src/lib/refunds.ts` | refund amount, cap and who decides; at most one refund per request |
 | `src/lib/ledger.ts` | the webhook ledger; repeated or late webhooks change nothing |
+| `src/lib/webhook.ts`, `src/lib/paypal/webhooks.ts` | the webhook route: PayPal confirms each signature (`verify-webhook-signature`) before anything is stored |
+| `src/lib/ledger-store.ts` | the ledger in Firestore: one transaction per event, keyed by its id |
 | `src/lib/reconcile.ts` | taken, paid and gap per item at dusk |
 | `src/lib/explain-check.ts` | rejects AI text with a number code did not compute |
 | `src/agent/tools.ts` | the agent's PayPal tool allowlist |
