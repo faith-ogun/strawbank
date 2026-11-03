@@ -22,6 +22,8 @@
   &nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#the-rule-the-ai-never-touches-money">The money rule</a>
   &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#claims-and-where-to-check-them">Claims, and where to check them</a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#what-this-is-not">What this is not</a>
 </p>
 
@@ -82,10 +84,56 @@ At dusk, one more photo of the shelf, and the grower gets the day's truth in pla
 
 ---
 
+## How it fits together
+
+```mermaid
+flowchart TB
+  customer["<b>Customer's phone</b><br/>stand page · receipt · IOU"]
+  grower["<b>Grower's phone</b><br/>morning · dusk · refunds<br/>IOUs · disputes · audit<br/>the ledger in AG Studio"]
+
+  subgraph run["Next.js on Cloud Run"]
+    routes["<b>API routes</b><br/>per-visitor limits<br/>grower session check"]
+    ai["<b>AI steps</b><br/>count · read · explain<br/>ledger agents"]
+    code["<b>Plain code</b><br/>totals · refunds · caps<br/>gaps · IOU prices<br/>dispute evidence · audit"]
+    check{"<b>Numbers check</b><br/>a number code<br/>did not compute<br/>is replaced"}
+    hook["<b>Webhook route</b><br/>PayPal confirms<br/>each signature"]
+  end
+
+  gemini["<b>Gemini</b><br/>on Vertex AI"]
+  paypal["<b>PayPal sandbox</b><br/>Orders v2 · refunds<br/>Invoicing v2 · Disputes<br/>Catalog Products<br/>Transaction Search<br/>webhooks<br/>Log in with PayPal"]
+  store[("<b>Firestore and<br/>Cloud Storage</b><br/>orders · ledger · refunds<br/>IOUs · disputes<br/>every PayPal call<br/>photos for 30 days")]
+
+  customer -- "basket photo" --> routes
+  grower -- "photos · approvals<br/>questions" --> routes
+  routes --> ai
+  routes --> code
+  ai <-- "photos, prompts" --> gemini
+  ai -- "counts and words" --> check
+  code -- "computed numbers" --> check
+  code -- "amounts code decided" --> paypal
+  paypal -- "signed webhooks" --> hook
+  hook --> store
+  code <--> store
+
+  classDef model fill:#FFF4D6,stroke:#C98A00,color:#0A1643
+  classDef plain fill:#E7F8EE,stroke:#2EA043,color:#0A1643
+  classDef pay fill:#E6F0FF,stroke:#0070E0,color:#0A1643
+  class ai,gemini model
+  class code,check,hook plain
+  class paypal pay
+```
+
+Yellow is the AI, green is plain code, blue is PayPal. The AI steps have no path to PayPal:
+every amount PayPal sees was worked out by plain code. The customer approves each payment
+in PayPal's own window, opened by the PayPal button on the stand page.
+
+---
+
 ## PayPal, call by call
 
-Every call below is shown in the app as it happens, with PayPal's debug ID, on the
-grower's page and on each receipt. "Seen working" is the date it last ran in the sandbox.
+Every call that asks PayPal to do something, and each list the audit and the disputes page
+read, is shown in the app as it happens, with PayPal's debug ID, on the grower's page and on
+each receipt. "Seen working" is the date it last ran in the sandbox.
 
 | What | PayPal endpoint | Through | Code | Seen working |
 |---|---|---|---|---|
@@ -179,6 +227,35 @@ Agent safety (E6) waits for its last trap photos. Every eval is described in
 
 ---
 
+## Claims, and where to check them
+
+Each claim this README or the app makes, with the code behind it and the eval that tests it.
+CI runs the money, day and audit evals (E4, E5, E7) on every push; the photo evals need
+Gemini credentials, so their numbers come from the scorecard.
+
+| Claim | Where to check it |
+|---|---|
+| The AI never decides an amount of money, and no tool handed to the model can move money | `src/agent/tools.ts`, `src/lib/paypal/refunds.ts`; E4.6 to E4.6c |
+| The customer pays exactly the sum of their lines at the stand's prices, and that is exactly what PayPal is asked for | `src/lib/orders.ts`; E4.1 to E4.1c. The receipt shows the order as PayPal reports it |
+| The agent refunds by itself only within the grower's limit, and only when its recount of the photo backs the claim; anything else waits for the grower | `src/lib/refunds.ts`, `src/lib/refund-flow.ts`; E4.2. On a receipt, press "Something's wrong with this?" |
+| Refunds never add up to more than was paid, and one request never refunds twice | `src/lib/refund-store.ts`; E4.2b, E4.2c, E4.3 |
+| Only webhooks PayPal confirms as signed reach the ledger, and each changes it once | `src/app/api/webhooks/paypal/route.ts`, `src/lib/ledger.ts`; E4.4, E4.4b. Each confirmation is listed under "What Strawbank asked PayPal" on the grower's page |
+| Any number in the AI's words that code did not compute is replaced, at dusk and in the ledger's assistant | `src/lib/explain-check.ts`, `src/lib/ai/studio-turn.ts`; E4.5 to E4.5e, E4.8 |
+| The dusk report says "uncertain", never "missing", when a count or a payment is not sure: 20 of 20 simulated days exactly right, nobody wrongly accused | `src/lib/reconcile.ts`, `src/lib/dusk.ts`; E5 |
+| On the first 10 real basket photos, the latest run counted 9 exactly, and none was off by more than one item | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
+| The next-morning audit flags exactly the differences between our ledger and PayPal's Transaction Search: 7 of 7 | `src/lib/audit.ts`; E7. The grower's "Next-morning audit" page |
+| An IOU is invoiced at exactly what an order for the same basket would charge, and counts as paid only when PayPal says so or the grower records cash | `src/lib/ious.ts`, `src/lib/iou-flow.ts`; E4.10, E4.11 |
+| Every order tells PayPal the goods were collected at the stand | `src/lib/orders.ts`; E4.12. "Collected at the stand" on the receipt is read back from PayPal's order |
+| Dispute evidence says only what the stand's record shows, in code's words | `src/lib/dispute-evidence.ts`, `src/lib/dispute-flow.ts`; E4.13, E4.13b |
+| Every call that asks PayPal to do something is shown with PayPal's debug ID | `src/lib/paypal/calls.ts`. "What Strawbank asked PayPal" on each receipt and on the grower's page |
+| A grower's pages open only with a session the server sealed, and act only on that grower's stand | `src/lib/session.ts`, `src/lib/grower-guard.ts`; E4.7 |
+| Sandbox only: no setting points the app at live PayPal | `src/lib/paypal/config.ts`, `src/lib/paypal/client.ts` |
+
+How each risk is handled, and what is not done yet: [SECURITY.md](SECURITY.md). Why it is built
+this way: [docs/decisions.md](docs/decisions.md).
+
+---
+
 ## Built with
 
 The stack, as each part lands:
@@ -238,6 +315,7 @@ login for judges: to come.
 | `src/agent/toolkit.ts` | the PayPal Agent Toolkit, sandbox only, adapted to AI SDK v7; money tools never reach the model |
 | `src/app/` | the stand page and receipt, the grower's pages, the ledger, the API routes |
 | `eval/` | the eval; see [docs/eval.md](docs/eval.md) |
+| `docs/decisions.md`, `SECURITY.md` | why it is built this way, and how each risk is handled |
 
 ---
 

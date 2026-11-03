@@ -308,7 +308,7 @@ function PayPalSection() {
 
 const NOT = [
   { title: "prevent theft", text: "It measures what walked. It does not stop it." },
-  { title: "watch people", text: "The camera points at the shelf and the basket. A photo with a face is never kept, and nobody is identified." },
+  { title: "watch people", text: "The camera points at the shelf and the basket, and nobody is identified. Photos are deleted after 30 days, unless an open refund or dispute still needs one." },
   { title: "need a till", text: "Customers pay on their own phones." },
   { title: "set a price or a sum", text: "The grower sets the prices. Code does the sums." },
 ];
