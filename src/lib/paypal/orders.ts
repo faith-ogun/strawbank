@@ -9,6 +9,7 @@ import {
   ApiError,
   CheckoutPaymentIntent,
   CustomError,
+  FulfillmentType,
   ItemCategory,
   OrdersController,
   PaypalExperienceUserAction,
@@ -56,6 +57,17 @@ export function toOrderRequest(body: CreateOrderBody, experience?: Experience): 
           unitAmount: money(item.unit_amount),
           category: ItemCategory.PhysicalGoods,
         })),
+        ...(unit.shipping && {
+          shipping: {
+            type: FulfillmentType.PickupInStore,
+            name: { fullName: unit.shipping.name.full_name },
+            address: {
+              addressLine1: unit.shipping.address.address_line_1,
+              adminArea2: unit.shipping.address.admin_area_2,
+              countryCode: unit.shipping.address.country_code,
+            },
+          },
+        }),
       },
     ],
     ...(experience && {

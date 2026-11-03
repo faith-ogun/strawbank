@@ -35,7 +35,8 @@ export async function POST(request: Request) {
     const lines = buildLines(found.catalogue, counts);
     const reference = crypto.randomUUID();
     const currency = found.stand.currency;
-    const body = createOrderBody(lines, currency, reference, `${standId}/${date}`);
+    // Collected at the stand, which PayPal records on the order (eval E4.12).
+    const body = createOrderBody(lines, currency, reference, `${standId}/${date}`, { name: found.stand.name, ...found.stand.place });
     const origin = appUrl();
     const order = await noted(
       { standId, who: "customer", what: "create the order, one line per item", endpoint: "POST /v2/checkout/orders" },

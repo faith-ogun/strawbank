@@ -90,15 +90,26 @@ export type CreateOrderBody = {
         unit_amount: PayPalAmount;
         category: "PHYSICAL_GOODS";
       }[];
+      /** Nothing is shipped: the customer collects the goods at the stand. */
+      shipping?: {
+        type: "PICKUP_IN_STORE";
+        name: { full_name: string };
+        address: { address_line_1: string; admin_area_2: string; country_code: string };
+      };
     },
   ];
 };
 
+/** Where a stand is, as PayPal records the pickup. */
+export type Pickup = { name: string; line1: string; town: string; country: string };
+
 /**
  * The body for `POST /v2/checkout/orders`. Prices already include any tax, so
  * the total is the item total; there is no shipping, tax or discount line.
+ * With `pickup`, the order tells PayPal the goods were collected at the stand
+ * (fulfilment type PICKUP_IN_STORE, at the stand's address; eval E4.12).
  */
-export function createOrderBody(lines: OrderLine[], currency: Currency, referenceId: string, customId?: string): CreateOrderBody {
+export function createOrderBody(lines: OrderLine[], currency: Currency, referenceId: string, customId?: string, pickup?: Pickup): CreateOrderBody {
   const total = orderTotalMinor(lines);
   return {
     intent: "CAPTURE",
@@ -118,6 +129,13 @@ export function createOrderBody(lines: OrderLine[], currency: Currency, referenc
           unit_amount: paypalAmount(line.unitMinor, currency),
           category: "PHYSICAL_GOODS",
         })),
+        ...(pickup && {
+          shipping: {
+            type: "PICKUP_IN_STORE",
+            name: { full_name: pickup.name },
+            address: { address_line_1: pickup.line1, admin_area_2: pickup.town, country_code: pickup.country },
+          },
+        }),
       },
     ],
   };

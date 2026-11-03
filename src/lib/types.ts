@@ -12,6 +12,8 @@ export type Stand = {
   currency: Currency;
   /** The most the agent may refund on its own, per request. */
   refundLimitMinor: number;
+  /** Where the stand is: PayPal records each order as collected here. */
+  place: { line1: string; town: string; country: string };
 };
 
 export type Day = {

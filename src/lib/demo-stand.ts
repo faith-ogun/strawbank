@@ -13,6 +13,8 @@ export const DEMO_STAND: Stand = {
   grower: "demo",
   currency: "EUR" satisfies Currency,
   refundLimitMinor: 500,
+  // A demo stand, set in County Monaghan like the story; not a real farm's address.
+  place: { line1: "Strawbank demo stand", town: "Monaghan", country: "IE" },
 };
 
 export const DEMO_CATALOGUE: CatalogueItem[] = [

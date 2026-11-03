@@ -9,8 +9,9 @@ import { p6 } from "./p6-tool-allowlist";
 import { p7 } from "./p7-sessions";
 import { p8 } from "./p8-ledger-assistant";
 import { p9 } from "./p9-iou-invoices";
+import { p10 } from "./p10-pickup";
 
-const PROPERTIES = [...p1, ...p2, ...p3, ...p4, ...p5, ...p6, ...p7, ...p8, ...p9];
+const PROPERTIES = [...p1, ...p2, ...p3, ...p4, ...p5, ...p6, ...p7, ...p8, ...p9, ...p10];
 
 // E4. Money invariants: generated cases, no photos and no PayPal. Any failure
 // blocks a release.

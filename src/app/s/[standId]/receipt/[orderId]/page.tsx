@@ -94,6 +94,7 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
         <p className="mt-3 break-all text-xs text-ink-3">
           PayPal order {order.id}
           {capture?.id && <> · payment {capture.id}</>}
+          {String(unit?.shipping?.type) === "PICKUP_IN_STORE" && <> · collected at the stand</>}
         </p>
       </div>
 
