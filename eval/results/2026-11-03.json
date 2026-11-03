@@ -1,10 +1,10 @@
 {
   "date": "2026-11-03",
-  "ranAt": "2026-11-03T18:03:24.544Z",
-  "commit": "51657e4",
+  "ranAt": "2026-11-03T18:28:29.579Z",
+  "commit": "3b9909d",
   "uncommittedChanges": false,
   "node": "v24.10.0",
-  "seed": 628808749,
+  "seed": 782956987,
   "runsPerProperty": 1000,
   "truthFiles": {
     "baskets": {
@@ -84,7 +84,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2052
+          "ms": 2365
         },
         {
           "id": "basket-002",
@@ -115,7 +115,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2081
+          "ms": 1944
         },
         {
           "id": "basket-003",
@@ -146,7 +146,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2320
+          "ms": 2457
         },
         {
           "id": "basket-004",
@@ -177,7 +177,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2101
+          "ms": 5327
         },
         {
           "id": "basket-005",
@@ -209,7 +209,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1309
+          "ms": 1144
         },
         {
           "id": "basket-006",
@@ -240,7 +240,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1363
+          "ms": 3332
         },
         {
           "id": "basket-007",
@@ -273,7 +273,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1239
+          "ms": 1140
         },
         {
           "id": "basket-008",
@@ -288,7 +288,7 @@
             "jam": 0
           },
           "sure": true,
-          "confidence": 1,
+          "confidence": 0.95,
           "reply": {
             "counts": {
               "egg": 5,
@@ -297,15 +297,15 @@
               "jam": 0
             },
             "confidence": {
-              "egg": 1,
-              "onion": 1,
+              "egg": 0.95,
+              "onion": 0.95,
               "potato": 1,
               "jam": 1
             },
             "notes": {},
             "unlisted": []
           },
-          "ms": 995
+          "ms": 1087
         },
         {
           "id": "basket-009",
@@ -337,7 +337,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1411
+          "ms": 1430
         },
         {
           "id": "basket-010",
@@ -370,7 +370,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1244
+          "ms": 1485
         }
       ]
     },
@@ -415,28 +415,28 @@
                 "key": "egg",
                 "name": "Eggs, each",
                 "price": "0.60",
-                "confidence": 0.98
+                "confidence": 0.95
               },
               {
                 "text": "Onion, each €0.30",
                 "key": "onion",
-                "name": "Onions, each",
+                "name": "Onion, each",
                 "price": "0.30",
-                "confidence": 0.95
+                "confidence": 0.93
               },
               {
                 "text": "Potatoes, each €0.20.",
                 "key": "potato",
                 "name": "Potatoes, each",
                 "price": "0.20",
-                "confidence": 0.98
+                "confidence": 0.95
               }
             ],
             "ignored": []
           },
           "exact": true,
           "caughtByGrower": true,
-          "ms": 2576
+          "ms": 3982
         }
       ]
     },
@@ -448,10 +448,10 @@
       "reason": "provisional: 2 of 20 shelf photos; the target is judged once all are in",
       "metrics": {
         "photos": 2,
-        "errors": 1,
+        "errors": 0,
         "itemCounts": 8,
-        "exactCounts": 4,
-        "exactRate": 0.5,
+        "exactCounts": 8,
+        "exactRate": 1,
         "meanItemError": 0,
         "wrongCounts": 0,
         "unsureWhenWrong": 1,
@@ -483,17 +483,34 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 4661
+          "ms": 12390
         },
         {
           "id": "day-01-morning",
+          "day": "day-01",
+          "time": "morning",
           "truth": {
             "egg": 5,
             "onion": 4,
             "potato": 4
           },
-          "error": "TimeoutError: The operation was aborted due to timeout",
-          "ms": 75010
+          "reply": {
+            "counts": {
+              "egg": 5,
+              "onion": 4,
+              "potato": 4,
+              "jam": 0
+            },
+            "confidence": {
+              "egg": 1,
+              "onion": 1,
+              "potato": 1,
+              "jam": 1
+            },
+            "notes": {},
+            "unlisted": []
+          },
+          "ms": 8753
         }
       ]
     },
@@ -503,8 +520,8 @@
       "target": "100% of generated cases pass",
       "status": "pass",
       "metrics": {
-        "properties": 22,
-        "cases": 19050,
+        "properties": 25,
+        "cases": 22050,
         "failed": 0
       },
       "properties": [
@@ -513,154 +530,175 @@
           "claim": "Order total = sum of lines (quantity x price) = PayPal item_total, in minor units",
           "runs": 1000,
           "passed": true,
-          "seed": 628808749
+          "seed": 782956987
         },
         {
           "id": "E4.1b",
           "claim": "A basket with an unknown item or a quantity that is not a whole number from 0 to 99 never becomes an order",
           "runs": 1000,
           "passed": true,
-          "seed": 628808750
+          "seed": 782956988
         },
         {
           "id": "E4.1c",
           "claim": "The PayPal SDK request carries the order body's amounts and lines unchanged",
           "runs": 1000,
           "passed": true,
-          "seed": 628808751
+          "seed": 782956989
         },
         {
           "id": "E4.2",
           "claim": "A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim",
           "runs": 1000,
           "passed": true,
-          "seed": 628808752
+          "seed": 782956990
         },
         {
           "id": "E4.2b",
           "claim": "Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured",
           "runs": 1000,
           "passed": true,
-          "seed": 628808753
+          "seed": 782956991
         },
         {
           "id": "E4.2c",
           "claim": "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
           "runs": 1000,
           "passed": true,
-          "seed": 628808754
+          "seed": 782956992
         },
         {
           "id": "E4.3",
           "claim": "The same refund request never produces two refunds",
           "runs": 1000,
           "passed": true,
-          "seed": 628808755
+          "seed": 782956993
         },
         {
           "id": "E4.4",
           "claim": "A duplicate or late webhook never changes the ledger twice",
           "runs": 1000,
           "passed": true,
-          "seed": 628808756
+          "seed": 782956994
         },
         {
           "id": "E4.4b",
           "claim": "Only a webhook PayPal confirms as signed reaches the ledger, and only once",
           "runs": 1000,
           "passed": true,
-          "seed": 628808757
+          "seed": 782956995
         },
         {
           "id": "E4.5",
           "claim": "The model's text never introduces a number that is not in the computed reconciliation",
           "runs": 1000,
           "passed": true,
-          "seed": 628808758
+          "seed": 782956996
         },
         {
           "id": "E4.5b",
           "claim": "Text that uses only computed numbers passes the check",
           "runs": 1000,
           "passed": true,
-          "seed": 628808759
+          "seed": 782956997
         },
         {
           "id": "E4.5c",
           "claim": "Whatever the model writes, the text shown contains only computed numbers, and the fallback always passes",
           "runs": 1000,
           "passed": true,
-          "seed": 628808760
+          "seed": 782956998
         },
         {
           "id": "E4.5d",
           "claim": "No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money",
           "runs": 1000,
           "passed": true,
-          "seed": 628808761
+          "seed": 782956999
         },
         {
           "id": "E4.5e",
           "claim": "A plain counting note, with no money in it, is shown as written",
           "runs": 1000,
           "passed": true,
-          "seed": 628808762
+          "seed": 782957000
         },
         {
           "id": "E4.6",
           "claim": "The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools",
           "runs": 1,
           "passed": true,
-          "seed": 628808763
+          "seed": 782957001
         },
         {
           "id": "E4.6b",
           "claim": "The agent never calls a tool outside its allowlist",
           "runs": 1000,
           "passed": true,
-          "seed": 628808764
+          "seed": 782957002
         },
         {
           "id": "E4.6c",
           "claim": "No tool handed to the model can move money; refunds run only from code",
           "runs": 1,
           "passed": true,
-          "seed": 628808765
+          "seed": 782957003
         },
         {
           "id": "E4.7",
           "claim": "A grower session opens only if the server sealed it, unaltered and in date",
           "runs": 1000,
           "passed": true,
-          "seed": 628808766
+          "seed": 782957004
         },
         {
           "id": "E4.8",
           "claim": "The ledger assistant shows only numbers the ledger's own tools returned or the grower wrote",
           "runs": 1000,
           "passed": true,
-          "seed": 628808767
+          "seed": 782957005
         },
         {
           "id": "E4.9",
           "claim": "Each Gemini turn's calls reach Gemini before their results, signed as received, none lost",
           "runs": 1000,
           "passed": true,
-          "seed": 628808768
+          "seed": 782957006
         },
         {
           "id": "E4.10",
           "claim": "An IOU invoice asks for exactly what an order for the same basket would, to the address given",
           "runs": 1000,
           "passed": true,
-          "seed": 628808769
+          "seed": 782957007
         },
         {
           "id": "E4.11",
           "claim": "An IOU counts as paid only when PayPal says it was paid or the grower recorded cash",
           "runs": 48,
           "passed": true,
-          "seed": 628808770
+          "seed": 782957008
+        },
+        {
+          "id": "E4.12",
+          "claim": "Every order tells PayPal the goods were collected at the stand, at the stand's own address",
+          "runs": 1000,
+          "passed": true,
+          "seed": 782957009
+        },
+        {
+          "id": "E4.13",
+          "claim": "Dispute evidence states the stand's own record exactly: the amount captured, each line, any refund, and only what really happened",
+          "runs": 1000,
+          "passed": true,
+          "seed": 782957010
+        },
+        {
+          "id": "E4.13b",
+          "claim": "Dispute evidence never claims a type that needs a tracking number or refund id",
+          "runs": 1000,
+          "passed": true,
+          "seed": 782957011
         }
       ]
     },

@@ -77,10 +77,13 @@ EVAL_SEED=123456 npm run eval
 | E4.9 | Each Gemini turn's tool calls reach Gemini before their results, each with its thought signature as received, none lost or sent twice |
 | E4.10 | An IOU invoice asks for exactly what an order for the same basket would: the stand's prices, line by line, one currency, no tip, no part payment, to the address given |
 | E4.11 | An IOU counts as paid only when PayPal says it was paid or the grower recorded cash |
+| E4.12 | Every order tells PayPal the goods were collected at the stand (fulfilment type PICKUP_IN_STORE), at the stand's own name and address, in the wire body and the SDK request; never "SHIPPING" |
+| E4.13 | Dispute evidence states the stand's own record exactly: the amount captured, each line as charged, any refund already made, and claims a pickup, a photo or a signed webhook only when there was one |
+| E4.13b | Dispute evidence never claims a type that needs a tracking number or refund id |
 
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
-capture, and so on); each planted bug made at least one property fail. E4.8 to E4.11 were checked the same way on 3 Nov: an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, and a Gemini turn's calls split or sent without their signatures. Each was caught. (The first version of E4.9 missed the split calls; it was strengthened.)
+capture, and so on); each planted bug made at least one property fail. E4.8 to E4.13 were checked the same way on 3 Nov (E4.12: an order sent as "shipping"; E4.13: the captured amount a cent high, a pickup always claimed, a tracking-number type allowed). For E4.8 to E4.11: an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, and a Gemini turn's calls split or sent without their signatures. Each was caught. (The first version of E4.9 missed the split calls; it was strengthened.)
 
 ## E5: reconciliation days
 
