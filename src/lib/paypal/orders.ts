@@ -88,7 +88,7 @@ function translate(error: unknown): never {
   throw error;
 }
 
-export type CreatedOrder = { orderId: string; status: string; approveUrl: string };
+export type CreatedOrder = { orderId: string; status: string; approveUrl: string; debugId?: string };
 
 /**
  * Orders v2 create. `requestId` goes in PayPal-Request-Id, so sending the same
@@ -96,19 +96,22 @@ export type CreatedOrder = { orderId: string; status: string; approveUrl: string
  */
 export async function createPayPalOrder(body: CreateOrderBody, experience: Experience, requestId: string): Promise<CreatedOrder> {
   let order: Order;
+  let debugId: string | undefined;
   try {
-    ({ result: order } = await orders().createOrder({
+    const response = await orders().createOrder({
       body: toOrderRequest(body, experience),
       paypalRequestId: requestId,
       prefer: "return=minimal",
-    }));
+    });
+    order = response.result;
+    debugId = response.headers["paypal-debug-id"];
   } catch (error) {
     translate(error);
   }
   // With a PayPal payment source the approval link is "payer-action"; older flows call it "approve".
   const approve = order.links?.find((l) => l.rel === "payer-action" || l.rel === "approve");
   if (!order.id || !order.status || !approve) throw new PayPalError("PayPal returned an order without an approval link", 502);
-  return { orderId: order.id, status: order.status, approveUrl: approve.href };
+  return { orderId: order.id, status: order.status, approveUrl: approve.href, debugId };
 }
 
 export type CapturedOrder = {
@@ -117,6 +120,7 @@ export type CapturedOrder = {
   captureId: string;
   captureStatus: string;
   amountMinor: number;
+  debugId?: string;
 };
 
 /**
@@ -126,12 +130,15 @@ export type CapturedOrder = {
  */
 export async function capturePayPalOrder(orderId: string, currency: Currency): Promise<CapturedOrder> {
   let order: Order;
+  let debugId: string | undefined;
   try {
-    ({ result: order } = await orders().captureOrder({
+    const response = await orders().captureOrder({
       id: orderId,
       paypalRequestId: `capture-${orderId}`,
       prefer: "return=representation",
-    }));
+    });
+    order = response.result;
+    debugId = response.headers["paypal-debug-id"];
   } catch (error) {
     translate(error);
   }
@@ -145,6 +152,7 @@ export async function capturePayPalOrder(orderId: string, currency: Currency): P
     captureId: capture.id,
     captureStatus: capture.status,
     amountMinor: fromPayPalAmount({ currency_code: capture.amount.currencyCode, value: capture.amount.value }, currency),
+    debugId,
   };
 }
 

@@ -11,6 +11,8 @@ import { requestMessage } from "@/lib/refund-flow";
 import { requestsForOrder } from "@/lib/refund-store";
 import { readSale } from "@/lib/sales";
 import { RefundClaim } from "@/components/stand/refund-claim";
+import { PayPalCalls } from "@/components/paypal-calls";
+import { callsForOrder } from "@/lib/paypal/calls";
 
 // F2 step 5: the receipt, read back from PayPal's own record of the order.
 // Amounts are PayPal's, parsed into minor units; each line total is worked
@@ -42,7 +44,11 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
   const capture = unit?.payments?.captures?.[0];
   const refunds = unit?.payments?.refunds ?? [];
   const paid = order.status === "COMPLETED" && capture?.status !== "DECLINED";
-  const [sale, claims] = await Promise.all([readSale(orderId).catch(() => undefined), requestsForOrder(orderId).catch(() => [])]);
+  const [sale, claims, calls] = await Promise.all([
+    readSale(orderId).catch(() => undefined),
+    requestsForOrder(orderId).catch(() => []),
+    callsForOrder(orderId).catch(() => []),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4 pb-16 pt-6">
@@ -99,6 +105,8 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
       {paid && sale?.standId === standId && (
         <RefundClaim orderId={orderId} lines={sale.lines.map(({ key, name, quantity }) => ({ key, name, quantity }))} />
       )}
+
+      <PayPalCalls calls={calls} title="What Strawbank asked PayPal for this order" />
 
       <p className="mt-8 text-center">
         <Link href={`/s/${standId}`} className="font-semibold text-ink underline decoration-straw decoration-2 underline-offset-4">

@@ -17,19 +17,21 @@ const MAX_PAGES = 10;
 const isoSeconds = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
 
 /** Every transaction PayPal reports between two times (at most 31 days apart). */
-export async function searchTransactions(from: Date, to: Date): Promise<PayPalTransaction[]> {
+export async function searchTransactions(from: Date, to: Date): Promise<PayPalTransaction[] & { debugId?: string }> {
   const api = new TransactionSearchController(paypalClient());
-  const out: PayPalTransaction[] = [];
+  const out: PayPalTransaction[] & { debugId?: string } = [];
   for (let page = 1; page <= MAX_PAGES; page++) {
     let result;
     try {
-      ({ result } = await api.searchTransactions({
+      let headers: Record<string, string>;
+      ({ result, headers } = await api.searchTransactions({
         startDate: isoSeconds(from),
         endDate: isoSeconds(to),
         fields: "transaction_info",
         pageSize: PAGE_SIZE,
         page,
       }));
+      out.debugId ??= headers["paypal-debug-id"];
     } catch (error) {
       if (error instanceof ApiError) {
         const body = (error.result ?? {}) as { message?: string; debug_id?: string; name?: string };

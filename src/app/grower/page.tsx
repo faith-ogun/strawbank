@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { findStand } from "@/lib/demo-stand";
 import { currentGrower } from "@/lib/session";
+import { PayPalCalls } from "@/components/paypal-calls";
+import { callsForStand } from "@/lib/paypal/calls";
 
 // The grower's front door. Customers never sign in; growers sign in with
 // PayPal, and judges get a one-click demo grower beside it (decision log,
@@ -62,6 +64,7 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
   }
 
   const stand = grower.standId ? findStand(grower.standId)?.stand : undefined;
+  const calls = stand ? await callsForStand(stand.id).catch(() => []) : [];
   return (
     <>
       <p className="mt-6 text-ink-2">
@@ -96,6 +99,7 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
           <DemoButton label="Run the demo stand" />
         </div>
       )}
+      <PayPalCalls calls={calls} title="What Strawbank asked PayPal" />
       <form action="/api/auth/logout" method="post" className="mt-6">
         <button type="submit" className="text-sm font-semibold text-ink-3 underline underline-offset-4">
           Sign out

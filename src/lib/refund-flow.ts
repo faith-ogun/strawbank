@@ -12,6 +12,7 @@ import { readMorning } from "./days";
 import { firestore } from "./firestore";
 import type { LedgerCapture } from "./ledger";
 import { formatMoney } from "./money";
+import { noteCall } from "./paypal/calls";
 import { ToolkitRefundGateway } from "./paypal/refunds";
 import { holdPhoto, readPhoto } from "./photos";
 import { type RefundRequest, firestoreRefundStore, readRequest, refundableNow, saveRequest, updateRequest } from "./refund-store";
@@ -70,6 +71,31 @@ export function requestMessage(request: RefundRequest): string {
     default:
       return request.reasons.map((r) => REASONS[r] ?? r).join(". ");
   }
+}
+
+/** Issues the refund code approved, and notes the call for the grower's and customer's pages. */
+async function refundAndNote(request: RefundRequest, decidedBy: "agent" | "grower", amountMinor: number): Promise<RefundOutcome> {
+  const started = Date.now();
+  const outcome = await issueRefund(firestoreRefundStore, new ToolkitRefundGateway(), {
+    requestId: request.requestId,
+    captureId: request.captureId,
+    amountMinor,
+    currency: request.currency,
+    decidedBy,
+  });
+  if (outcome.kind !== "over" && outcome.kind !== "duplicate") {
+    noteCall({
+      standId: request.standId,
+      orderId: request.orderId,
+      who: decidedBy,
+      what: `refund ${formatMoney(amountMinor, request.currency)} (Agent Toolkit create_refund)`,
+      endpoint: `POST /v2/payments/captures/${request.captureId}/refund`,
+      ok: outcome.kind === "refunded",
+      ref: outcome.record.paypalRefundId,
+      ms: Date.now() - started,
+    });
+  }
+  return outcome;
 }
 
 function settled(request: RefundRequest, outcome: RefundOutcome): RefundRequest {
@@ -156,13 +182,7 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
   if (decision.route === "grower" && basket) await holdPhoto(basket.photo, true).catch(() => undefined);
   if (decision.route !== "agent") return request;
 
-  const outcome = await issueRefund(firestoreRefundStore, new ToolkitRefundGateway(), {
-    requestId,
-    captureId: capture.captureId,
-    amountMinor: decision.amountMinor,
-    currency: sale.currency,
-    decidedBy: "agent",
-  });
+  const outcome = await refundAndNote(request, "agent", decision.amountMinor);
   request = settled(request, outcome);
   if (outcome.kind === "over") await updateRequest(requestId, { status: request.status, reasons: request.reasons });
   return request;
@@ -180,13 +200,7 @@ export async function growerDecides(requestId: string, standId: string, action: 
     await updateRequest(requestId, { status: "DECLINED", decidedBy: "grower" });
     return { ...request, status: "DECLINED", decidedBy: "grower" };
   }
-  const outcome = await issueRefund(firestoreRefundStore, new ToolkitRefundGateway(), {
-    requestId,
-    captureId: request.captureId,
-    amountMinor: request.amountMinor,
-    currency: request.currency,
-    decidedBy: "grower",
-  });
+  const outcome = await refundAndNote(request, "grower", request.amountMinor);
   const next = settled({ ...request, decidedBy: "grower" }, outcome);
   if (outcome.kind === "over") await updateRequest(requestId, { status: next.status, reasons: next.reasons, decidedBy: "grower" });
   return next;

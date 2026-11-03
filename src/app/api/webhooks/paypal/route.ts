@@ -1,13 +1,31 @@
 import { firestoreLedger } from "@/lib/ledger-store";
+import { noted } from "@/lib/paypal/calls";
 import { verifyWithPayPal } from "@/lib/paypal/webhooks";
 import { handlePayPalWebhook } from "@/lib/webhook";
 
 // The ledger's source: PayPal webhooks, each confirmed by PayPal through
 // /v1/notifications/verify-webhook-signature before Ledger.apply. PayPal
-// resends anything that does not get a 2xx, for up to three days.
+// resends anything that does not get a 2xx, for up to three days. Each check
+// is noted with the PayPal call log; a capture names its stand in custom_id.
 export async function POST(request: Request) {
-  const { status, body } = await handlePayPalWebhook(await request.text(), request.headers, {
-    verify: verifyWithPayPal,
+  const raw = await request.text();
+  let event: { event_type?: string; resource?: { id?: string; custom_id?: string; supplementary_data?: { related_ids?: { order_id?: string } } } } = {};
+  try {
+    event = JSON.parse(raw);
+  } catch {}
+  const { status, body } = await handlePayPalWebhook(raw, request.headers, {
+    verify: (rawBody, headers) =>
+      noted(
+        {
+          standId: event.resource?.custom_id?.split("/")[0],
+          orderId: event.resource?.supplementary_data?.related_ids?.order_id,
+          who: "webhook",
+          what: `check the signature of ${event.event_type ?? "a webhook"}`,
+          endpoint: "POST /v1/notifications/verify-webhook-signature",
+        },
+        () => verifyWithPayPal(rawBody, headers),
+        (verified) => ({ status: 200, ref: verified ? `${event.resource?.id ?? ""} signature confirmed` : "signature NOT confirmed" }),
+      ),
     store: firestoreLedger,
   });
   return Response.json(body, { status });

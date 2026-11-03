@@ -2,6 +2,7 @@ import { z } from "zod";
 import { appUrl } from "@/lib/app-url";
 import { standDate, standToday } from "@/lib/days";
 import { MAX_QUANTITY, OrderError, buildLines, createOrderBody, orderTotalMinor } from "@/lib/orders";
+import { noted } from "@/lib/paypal/calls";
 import { PayPalError, createPayPalOrder } from "@/lib/paypal/orders";
 import { readBasket, recordSale } from "@/lib/sales";
 
@@ -36,10 +37,15 @@ export async function POST(request: Request) {
     const currency = found.stand.currency;
     const body = createOrderBody(lines, currency, reference, `${standId}/${date}`);
     const origin = appUrl();
-    const order = await createPayPalOrder(
-      body,
-      { returnUrl: `${origin}/s/${standId}?paypal=approved`, cancelUrl: `${origin}/s/${standId}?paypal=cancelled` },
-      reference,
+    const order = await noted(
+      { standId, who: "customer", what: "create the order, one line per item", endpoint: "POST /v2/checkout/orders" },
+      () =>
+        createPayPalOrder(
+          body,
+          { returnUrl: `${origin}/s/${standId}?paypal=approved`, cancelUrl: `${origin}/s/${standId}?paypal=cancelled` },
+          reference,
+        ),
+      (o) => ({ status: 201, debugId: o.debugId, ref: o.orderId, orderId: o.orderId }),
     );
     const totalMinor = orderTotalMinor(lines);
     try {

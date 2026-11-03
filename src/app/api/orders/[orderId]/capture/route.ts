@@ -1,5 +1,6 @@
 import { DEMO_STAND } from "@/lib/demo-stand";
 import { firestoreLedger } from "@/lib/ledger-store";
+import { noted } from "@/lib/paypal/calls";
 import { PayPalError, capturePayPalOrder } from "@/lib/paypal/orders";
 import { readSale, recordCapture } from "@/lib/sales";
 
@@ -19,7 +20,11 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/orders/[or
 
   try {
     const sale = await readSale(orderId).catch(() => undefined);
-    const capture = await capturePayPalOrder(orderId, sale?.currency ?? DEMO_STAND.currency);
+    const capture = await noted(
+      { standId: sale?.standId, orderId, who: "customer", what: "capture the payment the customer approved", endpoint: `POST /v2/checkout/orders/${orderId}/capture` },
+      () => capturePayPalOrder(orderId, sale?.currency ?? DEMO_STAND.currency),
+      (c) => ({ status: 201, debugId: c.debugId, ref: c.captureId }),
+    );
     const status = LEDGER_STATUS[capture.captureStatus as keyof typeof LEDGER_STATUS];
     await Promise.all([
       sale && recordCapture(orderId, capture.captureId, capture.captureStatus),
