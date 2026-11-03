@@ -62,7 +62,7 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
             return (
               <p key={item.sku ?? item.name} className="flex justify-between gap-3">
                 <span>
-                  {item.name} {quantity} × {formatMoney(unitMinor, currency)}
+                  {item.name.replace(/, each$/i, "")} {quantity} × {formatMoney(unitMinor, currency)}
                 </span>
                 <span>{formatMoney(lineTotalMinor({ key: item.sku ?? item.name, name: item.name, quantity, unitMinor }), currency)}</span>
               </p>
