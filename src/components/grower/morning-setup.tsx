@@ -12,7 +12,7 @@ type Row = { key: string; name: string; price: string; unsure?: boolean };
 type Step =
   | { kind: "prices"; busy?: boolean; ignored: string[]; problem?: string; error?: string }
   | { kind: "shelf"; busy?: boolean; counted: boolean; notes: Record<string, string>; problem?: string; error?: string }
-  | { kind: "open"; date: string };
+  | { kind: "open"; date: string; inPayPal: number };
 
 const SURE = 0.8;
 const keyFor = (name: string) =>
@@ -93,7 +93,7 @@ export function MorningSetup({ standId, standing, currencySymbol }: { standId: s
     });
     const body = await response.json();
     if (!response.ok) setStep({ kind: "shelf", counted: true, notes: {}, error: body.error ?? "the stand could not be opened" });
-    else setStep({ kind: "open", date: body.date });
+    else setStep({ kind: "open", date: body.date, inPayPal: body.inPayPal ?? 0 });
   };
 
   const pricesValid = rows.length > 0 && rows.every((r) => r.name.trim() && /^\d{1,4}(\.\d{1,2})?$/.test(r.price) && Number(r.price) > 0);
@@ -106,6 +106,11 @@ export function MorningSetup({ standId, standing, currencySymbol }: { standId: s
         <p className="mt-2 text-ink-2">
           Customers see today&apos;s {rows.length} prices now, and tonight&apos;s dusk count is measured against this morning&apos;s.
         </p>
+        {step.inPayPal > 0 && (
+          <p className="mt-2 text-sm text-mint-ink">
+            {step.inPayPal === rows.length ? "Every item is" : `${step.inPayPal} of ${rows.length} items are`} listed in your PayPal catalogue.
+          </p>
+        )}
         <div className="mt-4 grid gap-2">
           <Link href={`/s/${standId}`} className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
             See the stand page
