@@ -117,10 +117,13 @@ limit off by a cent, a missing duplicate check, a ledger that counts a repeat tw
 planted bug made a property fail.
 
 Basket counting (eval **E1**) now runs on real photos of eggs, onions and potatoes, loose,
-in an egg box, in a bag and in a hand. On the first **10 baskets, 9 were counted exactly**;
-the miss was one egg too many in a pile of eight (scorecard `eval/results/2026-11-03.json`,
-provisional until all 40 photos are in). The other evals (shelf and price-card counting,
-whole simulated days, agent safety, the next-morning audit) are defined in
+in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted all
+10 exactly**; earlier runs the same day missed one egg in a pile of eight, so 9 of 10 is the
+honest floor. The grower's side is measured the same way: the price card was read exactly
+(eval **E2**, 3 of 3 lines) and both shelf photos were counted exactly (eval **E3**, 8 of 8
+item counts). All provisional until every photo is in (scorecard
+`eval/results/2026-11-03.json`). The other evals (whole simulated days, agent safety, the
+next-morning audit) are defined in
 [docs/eval.md](docs/eval.md) and switch on as their photos and features arrive.
 
 ---
