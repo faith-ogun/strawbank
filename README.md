@@ -29,7 +29,7 @@
   <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/eval_E4-16_properties,_0_failures-2ea043" alt="eval E4: 16 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E4-17_properties,_0_failures-2ea043" alt="eval E4: 17 properties, 0 failures">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
 </p>
@@ -86,9 +86,9 @@ because if the same input must always give the same answer, a guess is not good 
 Even the AI's dusk explanation is checked: any number in it that code did not compute, and
 the AI's words are replaced by a plain template.
 
-That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 16
-properties, each tried against generated cases (fast-check), on **14,002 cases with 0
-failures** (scorecard `eval/results/2026-10-28.json`).
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 17
+properties, each tried against generated cases (fast-check), on **15,002 cases with 0
+failures** (scorecard `eval/results/2026-11-03.json`).
 
 | Id | The property |
 |---|---|
