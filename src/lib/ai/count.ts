@@ -106,9 +106,14 @@ const MEDIA_RESOLUTION = {
  */
 const HEDGE_AFTER_MS = 4_000;
 const CALL_TIMEOUT_MS = 15_000;
-/** A shelf photo goes to the careful model in high detail; nobody is waiting at a till. */
-const SHELF_HEDGE_AFTER_MS = 25_000;
-const SHELF_TIMEOUT_MS = 50_000;
+/**
+ * A shelf photo goes to the careful model in high detail; nobody is waiting at
+ * a till. A normal answer takes 5 to 9 seconds, but on 3 Nov a call stalled
+ * until its timeout in 2 of 4 eval runs, on either photo, so the second try
+ * starts at 12 seconds and a third at 30. Worst case about 75 seconds, as before.
+ */
+const SHELF_TRIES_AT_MS = [0, 12_000, 30_000];
+const SHELF_TIMEOUT_MS = 45_000;
 
 /** A note is a short warning to check one item, so a note caps that item below sure. */
 const NOTED_CONFIDENCE = 0.5;
@@ -161,7 +166,7 @@ export async function countBasket(input: {
         },
       ],
     });
-  const { output } = await hedged(ask, input.scene === "shelf" ? SHELF_HEDGE_AFTER_MS : HEDGE_AFTER_MS);
+  const { output } = await hedged(ask, input.scene === "shelf" ? SHELF_TRIES_AT_MS : [0, HEDGE_AFTER_MS]);
   return readReply(keys, output);
 }
 
@@ -212,25 +217,25 @@ export function readReply(keys: string[], output: CountReplyFromModel): BasketCo
 }
 
 /**
- * Runs `call`, and runs it a second time if the first has not answered after
- * HEDGE_AFTER_MS or has failed. The first answer wins and the other call is
- * cancelled; it fails only if both do.
+ * Runs `call` at each of `triesAtMs` (milliseconds from the start) until one
+ * answers; a failed try starts the next one at once. The first answer wins and
+ * the others are cancelled; it fails only if every try does.
  */
-function hedged<T>(call: (signal: AbortSignal) => Promise<T>, hedgeAfterMs = HEDGE_AFTER_MS): Promise<T> {
+function hedged<T>(call: (signal: AbortSignal) => Promise<T>, triesAtMs: number[]): Promise<T> {
   const controllers: AbortController[] = [];
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timers: ReturnType<typeof setTimeout>[] = [];
   return new Promise<T>((resolve, reject) => {
     let failures = 0;
     const launch = () => {
-      if (controllers.length === 2) return;
+      if (controllers.length === triesAtMs.length) return;
       const controller = new AbortController();
       controllers.push(controller);
-      call(controller.signal).then(resolve, (error) => (++failures === 2 ? reject(error) : launch()));
+      call(controller.signal).then(resolve, (error) => (++failures === triesAtMs.length ? reject(error) : launch()));
     };
-    timer = setTimeout(launch, hedgeAfterMs);
+    for (const at of triesAtMs.slice(1)) timers.push(setTimeout(launch, at));
     launch();
   }).finally(() => {
-    clearTimeout(timer);
+    timers.forEach(clearTimeout);
     for (const controller of controllers) controller.abort();
   });
 }
