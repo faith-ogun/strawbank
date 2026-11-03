@@ -39,8 +39,9 @@
 > **Status: in development.** The money code is written and tested (eval E4, below), and a
 > sandbox order with one line per item is created and captured through the PayPal Server SDK,
 > and partial refunds go through the PayPal Agent Toolkit with the amount code decided. The
-> customer's stand page and receipt are live, with sandbox payments; the grower and ledger
-> pages are being built. This README only claims what works, and every result in it comes
+> customer's stand page and receipt are live, with sandbox payments, and PayPal's signed
+> webhooks feed the ledger (each signature confirmed by PayPal before anything is stored).
+> The grower and ledger pages are being built. This README only claims what works, and every result in it comes
 > from `npm run eval`.
 >
 > **Try it on a phone:** [the demo stand](https://strawbank-434001576954.europe-west1.run.app/s/demo).
