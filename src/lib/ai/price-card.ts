@@ -7,7 +7,7 @@
 
 import { Output, generateText } from "ai";
 import { z } from "zod";
-import type { CountableItem } from "./count";
+import type { CountableItem, ThinkingLevel } from "./count";
 import { type ModelSpeed, geminiModel } from "./model";
 
 export type CardLine = {
@@ -54,6 +54,10 @@ const replySchema = z.object({
   problem: z.string().nullable(),
 });
 
+/** The model and reasoning the grower's card reading uses; eval E2 measures them. */
+export const CARD_SPEED: ModelSpeed = "careful";
+export const CARD_THINKING: ThinkingLevel = "low";
+
 /** Prices are written like "0.60": always two decimals, so code can read them without rounding. */
 const twoDecimals = (price: string) => (price.includes(".") ? price.padEnd(price.indexOf(".") + 3, "0") : `${price}.00`);
 
@@ -62,10 +66,14 @@ export async function readPriceCard(input: {
   mediaType: string;
   known: CountableItem[];
   speed?: ModelSpeed;
+  thinking?: ThinkingLevel;
 }): Promise<CardReading> {
   const known = input.known.map((i) => `- ${i.key}: ${i.name}`).join("\n") || "(none yet)";
+  // Reading a few handwritten lines needs little reasoning; more only adds waiting.
+  const options = { thinkingConfig: { thinkingLevel: input.thinking ?? CARD_THINKING } };
   const { output } = await generateText({
-    model: geminiModel(input.speed ?? "careful"),
+    model: geminiModel(input.speed ?? CARD_SPEED),
+    providerOptions: { vertex: options, google: options },
     maxRetries: 1,
     timeout: { totalMs: 45_000 },
     instructions: INSTRUCTIONS,
