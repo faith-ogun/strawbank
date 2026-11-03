@@ -9,8 +9,14 @@ const shortName = (name: string) => name.replace(/, each$/i, "");
 const SOURCE: Record<string, string> = {
   webhook: "paid; PayPal's signed webhook confirms it",
   capture: "paid; PayPal's signed webhook not in yet",
+  cash: "IOU paid in cash; recorded in PayPal",
   none: "started, never paid",
 };
+
+function said(p: Dusk["payments"][number]): string {
+  if (p.source !== "invoice") return SOURCE[p.source];
+  return p.payment === "confirmed" ? "IOU paid; PayPal's signed webhook confirms it" : p.payment === "pending" ? "IOU; PayPal has sent the invoice" : "IOU cancelled";
+}
 
 export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency }) {
   const gapMinor = dusk.items.reduce((sum, i) => sum + i.gapMinor, 0);
@@ -86,11 +92,11 @@ export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency 
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-mono text-ink">{formatMoney(p.totalMinor, currency)}</span>
                 <span className={p.payment === "confirmed" ? "text-mint-ink" : p.payment === "pending" ? "text-straw-ink" : "text-ink-4"}>
-                  {SOURCE[p.source]}
+                  {said(p)}
                 </span>
               </div>
               <p className="font-mono text-[0.6875rem] text-ink-3">
-                order {p.orderId}
+                {p.source === "invoice" || p.source === "cash" ? "IOU invoice" : "order"} {p.orderId}
                 {p.captureId ? ` · capture ${p.captureId}` : ""}
                 {p.refundedMinor > 0 ? ` · ${formatMoney(p.refundedMinor, currency)} refunded` : ""}
               </p>

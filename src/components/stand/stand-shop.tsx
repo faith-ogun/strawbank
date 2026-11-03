@@ -12,6 +12,7 @@ import { useRef, useState } from "react";
 import type { BasketCount } from "@/lib/ai/count";
 import { type Currency, formatMoney } from "@/lib/money";
 import { type CatalogueItem, MAX_QUANTITY, buildLines, orderTotalMinor } from "@/lib/orders";
+import { IouForm } from "./iou-form";
 import { PayPalButton } from "./paypal-button";
 import { shrinkPhoto } from "./photo";
 
@@ -280,6 +281,7 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
               <p className="rounded-full bg-paper py-3 text-center font-semibold text-ink-3">Add what you are taking to pay</p>
             )}
             <p className="mt-2 text-center text-xs text-ink-4">PayPal wallet or card · sandbox only, no real money</p>
+            {total > 0 && <IouForm standId={standId} counts={counts} countId={phase.countId} />}
           </div>
         </section>
       )}

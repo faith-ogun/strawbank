@@ -101,6 +101,8 @@ export const euros = (minor: number) => minor / 100;
 const CONFIRMED_BY: Record<string, string> = {
   webhook: "PayPal signed webhook",
   capture: "PayPal capture reply",
+  invoice: "PayPal invoice (IOU)",
+  cash: "cash, recorded in PayPal",
   none: "not paid",
 };
 
@@ -137,15 +139,16 @@ const DAYS_BACK = 90;
 export async function standLedger(standId: string, catalogue: CatalogueItem[], now = new Date()): Promise<LedgerRows> {
   const store = firestore();
   const since = standDate(new Date(now.getTime() - DAYS_BACK * 24 * 60 * 60 * 1000));
-  const [daySnap, orderSnap, requests, calls] = await Promise.all([
+  const [daySnap, orderSnap, iouSnap, requests, calls] = await Promise.all([
     store.collection("stands").doc(standId).collection("days").get(),
     store.collection("orders").where("standId", "==", standId).get(),
+    store.collection("ious").where("standId", "==", standId).get(),
     requestsForStand(standId),
     callsForStand(standId, 500),
   ]);
 
   const records = daySnap.docs.filter((d) => d.id >= since).map((d) => ({ date: d.id, ...(d.data() as DayRecord) }));
-  const orderDates = [...new Set(orderSnap.docs.map((d) => String(d.data().date)).filter((d) => d >= since))];
+  const orderDates = [...new Set([...orderSnap.docs, ...iouSnap.docs].map((d) => String(d.data().date)).filter((d) => d >= since))];
   const byDate = new Map(await Promise.all(orderDates.map(async (date) => [date, (await paymentsForDay(standId, date)).payments] as const)));
 
   const payments: PaymentRow[] = [...byDate.entries()].flatMap(([date, list]) =>

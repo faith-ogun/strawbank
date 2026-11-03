@@ -28,8 +28,12 @@ export type PaymentSummary = {
   captureId?: string;
   totalMinor: number;
   payment: "confirmed" | "pending" | "unpaid";
-  /** Who said so: PayPal's signed webhook as well as its capture reply, or the capture reply alone. */
-  source: "webhook" | "capture" | "none";
+  /**
+   * Who said so: PayPal's signed webhook as well as its capture reply, the
+   * capture reply alone, a PayPal invoice (an IOU), or cash the grower
+   * recorded against an IOU in PayPal.
+   */
+  source: "webhook" | "capture" | "invoice" | "cash" | "none";
   refundedMinor: number;
 };
 

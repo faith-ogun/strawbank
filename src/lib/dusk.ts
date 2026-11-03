@@ -9,6 +9,8 @@ import { explainDay } from "./ai/explain";
 import { type Dusk, type PaymentSummary, readDay, saveDusk } from "./days";
 import { explanationToShow } from "./explain-check";
 import { firestore, whereIn } from "./firestore";
+import { iousForDay } from "./iou-flow";
+import { iouPayment } from "./ious";
 import type { LedgerCapture, LedgerRefund } from "./ledger";
 import { type Currency, addMinor } from "./money";
 import type { CatalogueItem } from "./orders";
@@ -18,8 +20,19 @@ import { type Sale, daySales } from "./sales";
 /** A refund made through Strawbank (F4), with the quantities the customer did not take. */
 export type RefundRequestRecord = { orderId: string; status: string; items?: Record<string, number> };
 
-/** Each of the day's orders, with PayPal's word on whether it was paid. */
+/** Each of the day's orders and IOUs, with PayPal's word on whether it was paid. */
 export async function paymentsForDay(standId: string, date: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
+  const [orders, ious] = await Promise.all([ordersForDay(standId, date), iousForDay(standId, date)]);
+  // An IOU is a payment on its way until PayPal says it was paid (or the grower recorded cash).
+  for (const iou of ious) {
+    const payment = iouPayment(iou.status);
+    orders.payments.push({ orderId: iou.invoiceId, totalMinor: iou.totalMinor, payment, source: iou.paidBy === "cash" ? "cash" : "invoice", refundedMinor: 0 });
+    orders.daySales.push({ lines: iou.lines, payment });
+  }
+  return orders;
+}
+
+async function ordersForDay(standId: string, date: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
   const sales = await daySales(standId, date);
   if (sales.length === 0) return { sales, payments: [], daySales: [] };
   const store = firestore();
