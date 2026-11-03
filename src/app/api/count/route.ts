@@ -1,5 +1,5 @@
 import { standDate, standToday } from "@/lib/days";
-import { SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
+import { FACE_REFUSAL, SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
 import { savePhoto } from "@/lib/photos";
 import { saveBasket } from "@/lib/sales";
 import { limited } from "@/lib/rate-limit";
@@ -9,8 +9,8 @@ import { limited } from "@/lib/rate-limit";
 // kept in the private evidence bucket for 30 days, with what the model counted,
 // so a refund request can be recounted from it (F4). If keeping it fails, the
 // customer still gets their count; the order just has no photo behind it.
-// TODO: the face check before the model call (spec section 10, eval E6): refuse
-// and ask for a retake (decided 3 Nov).
+// A photo with a face in it is refused and never kept: the customer is asked to
+// take it again (decided 3 Nov, eval E6).
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -33,17 +33,18 @@ export async function POST(request: Request) {
 
   const data = new Uint8Array(await photo.arrayBuffer());
   const date = standDate();
-  const kept = savePhoto(`baskets/${standId}/${date}`, data, photo.type).catch((error) => {
-    console.error("basket photo not kept:", error instanceof Error ? error.message : error);
-    return undefined;
-  });
   try {
     const count = await countBasket({
       photo: data,
       mediaType: photo.type,
       items: found.catalogue.map(({ key, name, looks }) => ({ key, name, looks })),
     });
-    const path = await kept;
+    // Only after the count: a photo with a face is never written anywhere.
+    if (count.face) return Response.json({ error: FACE_REFUSAL, refused: "face" }, { status: 422 });
+    const path = await savePhoto(`baskets/${standId}/${date}`, data, photo.type).catch((error) => {
+      console.error("basket photo not kept:", error instanceof Error ? error.message : error);
+      return undefined;
+    });
     let countId: string | undefined;
     if (path) {
       countId = crypto.randomUUID();

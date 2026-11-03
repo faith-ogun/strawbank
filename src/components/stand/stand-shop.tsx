@@ -69,6 +69,14 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
       form.set("photo", await shrinkPhoto(file), "basket.jpg");
       // The server gives up after about twenty seconds; this covers a dead signal.
       const response = await fetch("/api/count", { method: "POST", body: form, signal: AbortSignal.timeout(30_000) });
+      if (response.status === 422) {
+        // A face in the photo: refused and not kept. Back to the camera.
+        const refusal = await readError(response);
+        if (mine !== attempt.current) return;
+        setError(refusal);
+        setPhase({ kind: "start" });
+        return;
+      }
       if (!response.ok) throw new Error(await readError(response));
       const reply = (await response.json()) as CountReply;
       if (mine !== attempt.current) return;
@@ -164,14 +172,15 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
       {phase.kind === "start" && (
         <section className="mt-8">
           {photoInput("Photograph your basket", true)}
-          <p className="mt-4 text-center text-ink-2">We count it for you. You check the count, then pay with PayPal.</p>
+          <p className="mt-3 text-center font-semibold text-ink">Just the basket: not yourself, and nobody else.</p>
+          <p className="mt-2 text-center text-ink-2">We count it for you. You check the count, then pay with PayPal.</p>
           <p className="mt-4 text-center">
             <button type="button" onClick={countMyself} className="font-semibold text-ink underline decoration-line-2 decoration-2 underline-offset-4">
               Count it myself instead
             </button>
           </p>
           <p className="mt-6 text-center font-mono text-[0.6875rem] text-ink-3">
-            Open any box or bag so each item shows. Point the camera at your basket, not at people. The photo is only used to count.
+            Open any box or bag so each item shows. A photo with a person in it is refused and not kept. Others are kept for 30 days, in case you ask for a refund.
           </p>
         </section>
       )}

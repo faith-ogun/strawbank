@@ -1,7 +1,9 @@
 import { PayPalAgentToolkit } from "@paypal/agent-toolkit/ai-sdk";
 import fc from "fast-check";
 import { MODEL_TOOLS, modelTools, paypalToolkitTools } from "../../src/agent/toolkit";
-import { AGENT_TOOLS, TOOLKIT_ACTIONS, ToolNotAllowed, pickAgentTools, runAgentTool } from "../../src/agent/tools";
+import { AGENT_TOOLS, TOOLKIT_ACTIONS, ToolNotAllowed, ToolTimedOut, pickAgentTools, runAgentTool } from "../../src/agent/tools";
+import { ToolkitRefundGateway } from "../../src/lib/paypal/refunds";
+import { RefundRejected } from "../../src/lib/refunds";
 import { assert, moneyProperty } from "./shared";
 
 // Placeholder credentials: building the toolkit makes no network call, and no
@@ -60,6 +62,44 @@ const modelNeverMovesMoney = fc.property(fc.constant(null), () => {
   }
 });
 
+// The toolkit sends its requests with no timeout of its own. A call that never
+// answers must end at our deadline as "no answer": never as a refusal, which
+// would free the refund's amount for a second try (E4.2c keeps it pending).
+const never = () => new Promise<never>(() => {});
+/** Fails the case if `promise` has not settled well after the deadline, so a missing deadline fails rather than hangs. */
+async function watched<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([promise, new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new Error(`still waiting after ${ms} ms`)), ms)))]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+const toolCallsEnd = fc.asyncProperty(fc.integer({ min: 1, max: 25 }), fc.boolean(), async (deadlineMs, answers) => {
+  const tools = { create_refund: { execute: answers ? async () => '{"id":"R1","status":"COMPLETED"}' : never } };
+  const started = Date.now();
+  try {
+    const reply = await watched(runAgentTool(tools, "create_refund", {}, deadlineMs), deadlineMs + 500);
+    assert(answers && reply === '{"id":"R1","status":"COMPLETED"}', "a call that never answers resolved");
+  } catch (error) {
+    assert(!answers, `a call that answered at once was cut off: ${String(error)}`);
+    assert(error instanceof ToolTimedOut, `a call with no answer ended as ${String(error)}`);
+    assert(Date.now() - started >= deadlineMs - 1, "the call was cut off before its deadline");
+  }
+
+  const gateway = new ToolkitRefundGateway(() => tools, deadlineMs);
+  const input = { captureId: "CAP", amountMinor: 60, currency: "EUR" as const, idempotencyKey: "refund-x" };
+  if (answers) {
+    assert((await gateway.refund(input)).status === "COMPLETED", "the refund's answer was lost");
+  } else {
+    const outcome = await watched(gateway.refund(input), deadlineMs + 500).then(
+      () => "answered",
+      (error: unknown) => (error instanceof RefundRejected ? "refused" : error instanceof ToolTimedOut ? "unknown" : String(error)),
+    );
+    assert(outcome === "unknown", `a refund with no answer ended as "${outcome}", not unknown`);
+  }
+});
+
 export const p6 = [
   moneyProperty(
     "E4.6",
@@ -69,4 +109,5 @@ export const p6 = [
   ),
   moneyProperty("E4.6b", "The agent never calls a tool outside its allowlist", onlyAllowlistedRun),
   moneyProperty("E4.6c", "No tool handed to the model can move money; refunds run only from code", modelNeverMovesMoney, 1),
+  moneyProperty("E4.6d", "A PayPal toolkit call with no answer ends at its deadline as unknown, never as refused", toolCallsEnd, 50),
 ];

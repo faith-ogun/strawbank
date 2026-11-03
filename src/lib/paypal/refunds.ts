@@ -3,7 +3,7 @@
 // partial refunds). The amount is the one code decided; the model never
 // supplies it (eval E4.2c checks what is sent and how the reply is read).
 
-import { type AgentToolName, runAgentTool } from "../../agent/tools";
+import { type AgentToolName, TOOL_DEADLINE_MS, runAgentTool } from "../../agent/tools";
 import { paypalToolkitTools } from "../../agent/toolkit";
 import { paypalAmount } from "../money";
 import { type RefundGateway, RefundRejected } from "../refunds";
@@ -40,13 +40,18 @@ export function readRefundReply(raw: unknown): { paypalRefundId: string; status:
 
 export class ToolkitRefundGateway implements RefundGateway {
   /** `toolsFor` gives the tools for one refund, keyed on its PayPal-Request-Id. Replaceable in the eval. */
-  constructor(private readonly toolsFor: (requestId: string) => RefundTools = (requestId) => paypalToolkitTools({ requestId })) {}
+  constructor(
+    private readonly toolsFor: (requestId: string) => RefundTools = (requestId) => paypalToolkitTools({ requestId }),
+    private readonly deadlineMs = TOOL_DEADLINE_MS,
+  ) {}
 
   async refund(input: Parameters<RefundGateway["refund"]>[0]) {
-    const raw = await runAgentTool(this.toolsFor(input.idempotencyKey) as Record<string, Executable>, "create_refund", {
-      capture_id: input.captureId,
-      amount: paypalAmount(input.amountMinor, input.currency),
-    });
+    const raw = await runAgentTool(
+      this.toolsFor(input.idempotencyKey) as Record<string, Executable>,
+      "create_refund",
+      { capture_id: input.captureId, amount: paypalAmount(input.amountMinor, input.currency) },
+      this.deadlineMs,
+    );
     return readRefundReply(raw);
   }
 }

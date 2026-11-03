@@ -26,6 +26,16 @@ export const TOOLKIT_ACTIONS = {
 
 export class ToolNotAllowed extends Error {}
 
+/** A toolkit call that gave no answer in time. PayPal may still act on it, so its outcome is unknown. */
+export class ToolTimedOut extends Error {}
+
+/**
+ * Per call, in ms. The toolkit sends its requests with no timeout of its own,
+ * so without this a call that hangs would hold its request until Cloud Run
+ * ends it (eval E4.6d).
+ */
+export const TOOL_DEADLINE_MS = 20_000;
+
 export function isAgentTool(name: string): name is AgentToolName {
   return (AGENT_TOOLS as readonly string[]).includes(name);
 }
@@ -39,15 +49,26 @@ type Executable = { execute?: (args: never, options?: never) => unknown };
 
 /**
  * Runs a tool call by name. Anything outside the allowlist throws before any
- * code of the tool runs, even if the tool was somehow passed in.
+ * code of the tool runs, even if the tool was somehow passed in. A call with
+ * no answer by the deadline throws ToolTimedOut; the request itself may still
+ * reach PayPal, which is why a timed-out refund stays pending.
  */
 export async function runAgentTool<T extends Executable>(
   tools: Record<string, T>,
   name: string,
   args: unknown,
+  deadlineMs = TOOL_DEADLINE_MS,
 ): Promise<unknown> {
   if (!isAgentTool(name)) throw new ToolNotAllowed(`the agent may not call "${name}"`);
   const tool = pickAgentTools(tools)[name];
   if (!tool?.execute) throw new ToolNotAllowed(`"${name}" is not available`);
-  return (tool.execute as (args: unknown) => unknown)(args);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new ToolTimedOut(`"${name}" gave no answer in ${deadlineMs} ms`)), deadlineMs);
+  });
+  try {
+    return await Promise.race([Promise.resolve((tool.execute as (args: unknown) => unknown)(args)), late]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

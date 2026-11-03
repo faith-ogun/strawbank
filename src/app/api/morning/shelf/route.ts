@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { countShelf } from "@/lib/ai/count";
+import { FACE_REFUSAL, countShelf } from "@/lib/ai/count";
 import { growerStand, photoFrom } from "@/lib/grower-guard";
 import { limited } from "@/lib/rate-limit";
 
 // F1 step 2: the stocked shelf -> a count per item on the list the grower just
-// confirmed. The grower checks every count before the stand opens.
+// confirmed. The grower checks every count before the stand opens. The photo
+// is not kept; one with a face in it is refused all the same (eval E6).
 const Items = z.array(z.object({ key: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), name: z.string().min(1).max(60) })).min(1).max(20);
 
 export async function POST(request: Request) {
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
   const looks = new Map(guard.catalogue.map((i) => [i.key, i.looks]));
   try {
     const count = await countShelf({ ...upload, items: items.data.map((i) => ({ ...i, looks: looks.get(i.key) })) });
+    if (count.face) return Response.json({ error: FACE_REFUSAL, refused: "face" }, { status: 422 });
     return Response.json(count);
   } catch (error) {
     console.error("shelf count failed:", error instanceof Error ? `${error.name}: ${error.message}` : error);
