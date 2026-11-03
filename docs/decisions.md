@@ -136,6 +136,11 @@ model or kept (decided, not built yet).
 
 **In the code:** `src/lib/photos.ts`.
 
+**Update, 3 Nov 2026, late:** the face check is built. Gemini says whether a face is in the
+photo in the same call that counts it, so the check adds no wait, and the photo is saved only
+after the count. Gemini therefore sees the photo once; a photo with a face is never stored. A
+second, purpose-built check run alongside it is planned. Eval E6.
+
 ## D13. The ledger shows real records; practice days only on request, and labelled
 
 **3 Nov 2026.** The AG Studio ledger opens on the stand's own records. Twenty practice days,
@@ -204,6 +209,16 @@ claim with the grower.
 not cost the customer their answer.
 
 **In the code:** `src/lib/rate-limit.ts`, `src/lib/ai/hedged.ts`, `src/lib/refund-flow.ts`.
+
+## D19. A deadline on every Agent Toolkit call
+
+**3 Nov 2026.** The Agent Toolkit sends its requests with no timeout of its own. Strawbank
+stops waiting after 20 seconds and treats the call as having no answer, never as a refusal.
+
+**Why:** a refusal frees a refund's amount for a second try, but PayPal may still act on a
+request that has not answered, so the refund stays pending until PayPal's word settles it.
+
+**In the code:** `src/agent/tools.ts` (`TOOL_DEADLINE_MS`). Eval E4.6d.
 
 ## Related
 
