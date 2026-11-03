@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RefundClaimError, claimRefund, requestMessage } from "@/lib/refund-flow";
+import { limited } from "@/lib/rate-limit";
 
 // F4: a customer's "something's wrong" -> the agent's recount of their basket
 // photo -> code's decision -> a refund through the Agent Toolkit, or the
@@ -12,6 +13,8 @@ const Input = z.object({
 });
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "refundClaim");
+  if (tooMany) return tooMany;
   const parsed = Input.safeParse(await request.json().catch(() => undefined));
   if (!parsed.success) return Response.json({ error: "expected { orderId, claimed }" }, { status: 400 });
   try {

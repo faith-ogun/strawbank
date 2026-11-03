@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type StudioRequest, runStudioTurn } from "@/lib/ai/studio-turn";
 import { growerStand } from "@/lib/grower-guard";
+import { allow, limited } from "@/lib/rate-limit";
 
 // F6: one turn of the ledger's AG Studio agents, on Gemini (src/lib/ai/studio-turn.ts).
 // Signed-in growers only, with a cap on turns per grower so the public demo
@@ -17,21 +18,15 @@ const Input = z.object({
   signatures: z.record(z.string(), z.string()).default({}),
 });
 
-const TURNS_PER_HOUR = 150;
-const turns = new Map<string, number[]>();
-
-function allowTurn(growerId: string, now = Date.now()): boolean {
-  const recent = (turns.get(growerId) ?? []).filter((t) => now - t < 60 * 60 * 1000);
-  if (recent.length >= TURNS_PER_HOUR) return false;
-  recent.push(now);
-  turns.set(growerId, recent);
-  return true;
-}
+// Every judge shares the demo grower, so this cap is generous; the per-visitor limit does the rest.
+const TURNS_PER_HOUR = 600;
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "studioTurn");
+  if (tooMany) return tooMany;
   const guard = await growerStand();
   if ("refused" in guard) return guard.refused;
-  if (!allowTurn(guard.grower.growerId)) {
+  if (!allow(`studio-grower:${guard.grower.growerId}`, TURNS_PER_HOUR, 60 * 60 * 1000)) {
     return Response.json({ error: "the ledger's assistant has answered a lot this hour; try again later" }, { status: 429 });
   }
   const parsed = Input.safeParse(await request.json().catch(() => undefined));

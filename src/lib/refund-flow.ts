@@ -34,6 +34,7 @@ const REASONS: Record<string, string> = {
   "over the grower's limit": "it is more than the agent may refund on its own",
   "earlier refunds leave less than the claim": "earlier refunds leave less than you asked for",
   "no basket photo to recount": "there is no basket photo to check",
+  "the recount did not work": "the agent could not recount the basket photo just now",
 };
 
 async function captureFor(orderId: string, known?: string): Promise<LedgerCapture | undefined> {
@@ -130,21 +131,28 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
   const basket = sale.countId ? await readBasket(sale.countId) : undefined;
   let recount: Record<string, number> | undefined;
   let recountConfidence = 0;
+  let recountFailed = false;
   if (basket) {
     const morning = await readMorning(sale.standId, sale.date);
     const catalogue = morning?.catalogue ?? found.catalogue;
     const looks = new Map(found.catalogue.map((i) => [i.key, i.looks]));
-    const { data, contentType } = await readPhoto(basket.photo);
-    const count = await countBasket({
-      photo: data,
-      mediaType: contentType,
-      items: catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })),
-      speed: "careful",
-      thinking: "low",
-    });
-    recount = count.counts;
-    const disputed = sale.lines.filter((l) => claimed[l.key] < l.quantity);
-    recountConfidence = Math.min(...disputed.map((l) => count.confidence[l.key] ?? 0));
+    // If the recount fails (the photo is gone, or Gemini does not answer), the claim waits for the grower.
+    try {
+      const { data, contentType } = await readPhoto(basket.photo);
+      const count = await countBasket({
+        photo: data,
+        mediaType: contentType,
+        items: catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })),
+        speed: "careful",
+        thinking: "low",
+      });
+      recount = count.counts;
+      const disputed = sale.lines.filter((l) => claimed[l.key] < l.quantity);
+      recountConfidence = Math.min(...disputed.map((l) => count.confidence[l.key] ?? 0));
+    } catch (error) {
+      console.error(`recount for ${orderId} failed:`, error instanceof Error ? error.message : error);
+      recountFailed = true;
+    }
   }
 
   const decision = decideRefund({
@@ -157,6 +165,7 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
   });
   const reasons = decision.route === "agent" ? [] : decision.reasons;
   if (!basket && decision.route !== "none") reasons.unshift("no basket photo to recount");
+  if (recountFailed && decision.route !== "none") reasons.unshift("the recount did not work");
 
   let request: RefundRequest = {
     requestId,

@@ -2,12 +2,15 @@ import { countShelf } from "@/lib/ai/count";
 import { readMorning, saveDuskReading, standDate } from "@/lib/days";
 import { growerStand, photoFrom } from "@/lib/grower-guard";
 import { savePhoto } from "@/lib/photos";
+import { limited } from "@/lib/rate-limit";
 
 // F3 step 1: the shelf at dusk -> what is left of each item on today's list.
 // The reading is kept with its photo, so closing the day can tell which counts
 // the grower checked and which are the AI's alone.
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "growerPhoto");
+  if (tooMany) return tooMany;
   const guard = await growerStand();
   if ("refused" in guard) return guard.refused;
   const date = standDate();

@@ -2,6 +2,7 @@ import { standDate, standToday } from "@/lib/days";
 import { SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
 import { savePhoto } from "@/lib/photos";
 import { saveBasket } from "@/lib/sales";
+import { limited } from "@/lib/rate-limit";
 
 // F2 step 2: a basket photo -> a count per item on today's list, with how sure
 // the model is. Text on a photo is data, never an instruction. The photo is
@@ -15,6 +16,8 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "count");
+  if (tooMany) return tooMany;
   const form = await request.formData().catch(() => undefined);
   const standId = form?.get("standId");
   const photo = form?.get("photo");

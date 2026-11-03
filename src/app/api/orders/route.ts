@@ -5,6 +5,7 @@ import { MAX_QUANTITY, OrderError, buildLines, createOrderBody, orderTotalMinor 
 import { noted } from "@/lib/paypal/calls";
 import { PayPalError, createPayPalOrder } from "@/lib/paypal/orders";
 import { readBasket, recordSale } from "@/lib/sales";
+import { limited } from "@/lib/rate-limit";
 
 // F2 step 4: the customer's confirmed counts x the grower's confirmed prices ->
 // an Orders v2 order with each item as a line. Prices come from the stand's
@@ -20,6 +21,8 @@ const OrderInput = z.object({
 });
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "order");
+  if (tooMany) return tooMany;
   const parsed = OrderInput.safeParse(await request.json().catch(() => undefined));
   if (!parsed.success) return Response.json({ error: "expected { standId, counts }" }, { status: 400 });
   const { standId, counts } = parsed.data;

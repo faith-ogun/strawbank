@@ -43,10 +43,10 @@ function Nav() {
           </a>
         </div>
         <a
-          href="#tin"
+          href="/try"
           className="rounded-full border border-ink bg-straw px-4 py-2 text-sm font-semibold text-ink shadow-tag transition-transform hover:-translate-y-px active:translate-y-px"
         >
-          Follow a day
+          Try both sides
         </a>
       </nav>
     </header>
@@ -74,8 +74,8 @@ function Hero() {
         >
           Follow a day at the stand ↓
         </a>
-        <a href="#rule" className="rounded-full border border-line-2 bg-white px-6 py-3 font-semibold text-ink hover:border-ink">
-          The money rule
+        <a href="/try" className="rounded-full border border-line-2 bg-white px-6 py-3 font-semibold text-ink hover:border-ink">
+          Try it: be the grower and the customer
         </a>
       </div>
       <p className="mt-6 font-mono text-[0.75rem] text-ink-3">
@@ -247,8 +247,8 @@ function MoneyRule() {
 
         <div className="mt-14 grid gap-px overflow-hidden rounded-[22px] border border-white/15 bg-white/15 sm:grid-cols-3">
           {[
-            { n: "16", what: "money properties, each a rule that must always hold" },
-            { n: "14,002", what: "generated cases tried against them" },
+            { n: "25", what: "money properties, each a rule that must always hold" },
+            { n: "22,050", what: "generated cases tried against them" },
             { n: "0", what: "failures" },
           ].map((s) => (
             <div key={s.what} className="bg-ink p-6">
@@ -258,7 +258,7 @@ function MoneyRule() {
           ))}
         </div>
         <p className="mt-4 font-mono text-[0.6875rem] text-white/50">
-          Eval E4 scorecard, 28 Oct 2026. Bugs planted in the money code on purpose each made a property fail.
+          Eval E4 scorecard, 3 Nov 2026. Bugs planted in the money code on purpose each made a property fail.
         </p>
       </div>
     </section>
@@ -267,8 +267,10 @@ function MoneyRule() {
 
 const PAYPAL = [
   { when: "07:40", moment: "Morning set-up", api: "Catalog Products", what: "each new item on the price card becomes a product, made once and reused" },
-  { when: "11:15", moment: "A customer", api: "Orders v2", what: "one order line per item, then the capture, by PayPal wallet or card" },
+  { when: "11:15", moment: "A customer", api: "Orders v2", what: "one order line per item, collected at the stand, then the capture, by PayPal wallet or card" },
   { when: "11:20", moment: "Something's wrong", api: "Payments v2 refunds", what: "partial refunds, never more than was captured" },
+  { when: "13:05", moment: "No PayPal to hand", api: "Invoicing v2", what: "the honesty-box IOU: an invoice for the basket at the stand's prices, paid later" },
+  { when: "Any day", moment: "A dispute", api: "Disputes", what: "answered with the basket photo and the stand's own record, or the claim accepted" },
   { when: "All day", moment: "The ledger", api: "Webhooks", what: "signed events, verified, build the ledger; a repeated one changes nothing" },
   { when: "Next day", moment: "The audit", api: "Transaction Search", what: "our ledger checked against PayPal's own records" },
   { when: "Always", moment: "The agent", api: "Agent Toolkit", what: "its PayPal tools come from a short allowlist, and nothing else" },

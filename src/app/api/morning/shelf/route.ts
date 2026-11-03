@@ -1,12 +1,15 @@
 import { z } from "zod";
 import { countShelf } from "@/lib/ai/count";
 import { growerStand, photoFrom } from "@/lib/grower-guard";
+import { limited } from "@/lib/rate-limit";
 
 // F1 step 2: the stocked shelf -> a count per item on the list the grower just
 // confirmed. The grower checks every count before the stand opens.
 const Items = z.array(z.object({ key: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), name: z.string().min(1).max(60) })).min(1).max(20);
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "growerPhoto");
+  if (tooMany) return tooMany;
   const guard = await growerStand();
   if ("refused" in guard) return guard.refused;
   const form = await request.formData().catch(() => undefined);

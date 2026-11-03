@@ -3,6 +3,7 @@ import { IouError, leaveIou } from "@/lib/iou-flow";
 import { isEmail } from "@/lib/ious";
 import { MAX_QUANTITY, OrderError } from "@/lib/orders";
 import { PayPalError } from "@/lib/paypal/orders";
+import { limited } from "@/lib/rate-limit";
 
 // The honesty-box IOU: a customer with no PayPal to hand leaves an email
 // address, and PayPal sends them an invoice for the counted basket at the
@@ -18,6 +19,8 @@ const Input = z.object({
 });
 
 export async function POST(request: Request) {
+  const tooMany = limited(request, "iou");
+  if (tooMany) return tooMany;
   const parsed = Input.safeParse(await request.json().catch(() => undefined));
   if (!parsed.success) return Response.json({ error: "expected { standId, counts, email, requestId }" }, { status: 400 });
   if (!isEmail(parsed.data.email)) return Response.json({ error: "that does not look like an email address" }, { status: 400 });

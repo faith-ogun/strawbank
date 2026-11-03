@@ -44,7 +44,7 @@
 >
 > This README only claims what works, and every result in it comes from `npm run eval`.
 >
-> **Try it on a phone:** [the demo stand](https://strawbank-434001576954.europe-west1.run.app/s/demo).
+> **Try both sides in about ten minutes:** [strawbank-434001576954.europe-west1.run.app/try](https://strawbank-434001576954.europe-west1.run.app/try) walks you through opening the demo stand as its grower, buying from it on your phone, and closing the day. Or go straight to [the demo stand](https://strawbank-434001576954.europe-west1.run.app/s/demo).
 > Payments are PayPal sandbox only; no real money moves.
 
 ---
