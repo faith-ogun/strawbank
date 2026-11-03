@@ -157,7 +157,7 @@ exactly** (one run earlier that day counted all 10), and no basket was off by mo
 item. The grower's side is measured the same way:
 
 - **E2, the price card:** read exactly, 3 of 3 lines.
-- **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). One earlier run the same day timed out on one photo after 75 seconds; a grower whose count times out can count by hand.
+- **E3, shelf counts:** in the latest run, one of the two shelf photos was counted exactly and the other timed out after 75 seconds, so it scored 4 of 8 item counts. Earlier runs the same day counted both exactly. The timeout is being worked on; a grower whose count times out can count by hand.
 
 All three are provisional until every photo is in.
 
