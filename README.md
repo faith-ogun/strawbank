@@ -107,7 +107,12 @@ failures** (scorecard `eval/results/2026-10-28.json`).
 
 The tests were checked by planting bugs in the money code (a total off by a cent, a refund
 limit off by a cent, a missing duplicate check, a ledger that counts a repeat twice); each
-planted bug made a property fail. The other evals (basket, shelf and price-card counting,
+planted bug made a property fail.
+
+Basket counting (eval **E1**) now runs on real photos of eggs, onions and potatoes, loose,
+in an egg box, in a bag and in a hand. On the first **10 baskets, 9 were counted exactly**;
+the miss was one egg too many in a pile of eight (scorecard `eval/results/2026-11-03.json`,
+provisional until all 40 photos are in). The other evals (shelf and price-card counting,
 whole simulated days, agent safety, the next-morning audit) are defined in
 [docs/eval.md](docs/eval.md) and switch on as their photos and features arrive.
 
