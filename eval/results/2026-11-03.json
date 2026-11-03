@@ -1,10 +1,10 @@
 {
   "date": "2026-11-03",
-  "ranAt": "2026-11-03T09:34:42.217Z",
-  "commit": "a4eed17",
+  "ranAt": "2026-11-03T10:03:40.329Z",
+  "commit": "9183db7",
   "uncommittedChanges": false,
   "node": "v24.10.0",
-  "seed": 1471608291,
+  "seed": 603431359,
   "runsPerProperty": 1000,
   "truthFiles": {
     "baskets": {
@@ -84,7 +84,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2527
+          "ms": 3725
         },
         {
           "id": "basket-002",
@@ -115,7 +115,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2449
+          "ms": 2064
         },
         {
           "id": "basket-003",
@@ -146,7 +146,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2484
+          "ms": 2190
         },
         {
           "id": "basket-004",
@@ -177,7 +177,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 2468
+          "ms": 2043
         },
         {
           "id": "basket-005",
@@ -209,7 +209,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1441
+          "ms": 1388
         },
         {
           "id": "basket-006",
@@ -240,7 +240,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1479
+          "ms": 1686
         },
         {
           "id": "basket-007",
@@ -273,7 +273,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1825
+          "ms": 1498
         },
         {
           "id": "basket-008",
@@ -288,7 +288,7 @@
             "jam": 0
           },
           "sure": true,
-          "confidence": 0.95,
+          "confidence": 1,
           "reply": {
             "counts": {
               "egg": 5,
@@ -297,15 +297,15 @@
               "jam": 0
             },
             "confidence": {
-              "egg": 0.95,
-              "onion": 0.95,
+              "egg": 1,
+              "onion": 1,
               "potato": 1,
               "jam": 1
             },
             "notes": {},
             "unlisted": []
           },
-          "ms": 1409
+          "ms": 4988
         },
         {
           "id": "basket-009",
@@ -337,7 +337,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1589
+          "ms": 1646
         },
         {
           "id": "basket-010",
@@ -370,7 +370,7 @@
             "notes": {},
             "unlisted": []
           },
-          "ms": 1374
+          "ms": 1273
         }
       ]
     },
@@ -400,8 +400,8 @@
       "target": "100% of generated cases pass",
       "status": "pass",
       "metrics": {
-        "properties": 17,
-        "cases": 15002,
+        "properties": 18,
+        "cases": 16002,
         "failed": 0
       },
       "properties": [
@@ -410,119 +410,126 @@
           "claim": "Order total = sum of lines (quantity x price) = PayPal item_total, in minor units",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608291
+          "seed": 603431359
         },
         {
           "id": "E4.1b",
           "claim": "A basket with an unknown item or a quantity that is not a whole number from 0 to 99 never becomes an order",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608292
+          "seed": 603431360
         },
         {
           "id": "E4.1c",
           "claim": "The PayPal SDK request carries the order body's amounts and lines unchanged",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608293
+          "seed": 603431361
         },
         {
           "id": "E4.2",
           "claim": "A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608294
+          "seed": 603431362
         },
         {
           "id": "E4.2b",
           "claim": "Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608295
+          "seed": 603431363
         },
         {
           "id": "E4.2c",
           "claim": "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608296
+          "seed": 603431364
         },
         {
           "id": "E4.3",
           "claim": "The same refund request never produces two refunds",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608297
+          "seed": 603431365
         },
         {
           "id": "E4.4",
           "claim": "A duplicate or late webhook never changes the ledger twice",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608298
+          "seed": 603431366
         },
         {
           "id": "E4.4b",
           "claim": "Only a webhook PayPal confirms as signed reaches the ledger, and only once",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608299
+          "seed": 603431367
         },
         {
           "id": "E4.5",
           "claim": "The model's text never introduces a number that is not in the computed reconciliation",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608300
+          "seed": 603431368
         },
         {
           "id": "E4.5b",
           "claim": "Text that uses only computed numbers passes the check",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608301
+          "seed": 603431369
         },
         {
           "id": "E4.5c",
           "claim": "Whatever the model writes, the text shown contains only computed numbers, and the fallback always passes",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608302
+          "seed": 603431370
         },
         {
           "id": "E4.5d",
           "claim": "No note, unlisted item or problem the model writes about a basket reaches the customer if it mentions money",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608303
+          "seed": 603431371
         },
         {
           "id": "E4.5e",
           "claim": "A plain counting note, with no money in it, is shown as written",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608304
+          "seed": 603431372
         },
         {
           "id": "E4.6",
           "claim": "The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools",
           "runs": 1,
           "passed": true,
-          "seed": 1471608305
+          "seed": 603431373
         },
         {
           "id": "E4.6b",
           "claim": "The agent never calls a tool outside its allowlist",
           "runs": 1000,
           "passed": true,
-          "seed": 1471608306
+          "seed": 603431374
         },
         {
           "id": "E4.6c",
           "claim": "No tool handed to the model can move money; refunds run only from code",
           "runs": 1,
           "passed": true,
-          "seed": 1471608307
+          "seed": 603431375
+        },
+        {
+          "id": "E4.7",
+          "claim": "A grower session opens only if the server sealed it, unaltered and in date",
+          "runs": 1000,
+          "passed": true,
+          "seed": 603431376
         }
       ]
     },

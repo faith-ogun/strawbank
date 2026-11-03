@@ -29,7 +29,7 @@
   <img src="https://img.shields.io/badge/PayPal-sandbox-0088F5" alt="PayPal sandbox">
   <img src="https://img.shields.io/badge/Gemini-Vertex_AI-0F1252" alt="Gemini on Vertex AI">
   <img src="https://img.shields.io/badge/Next.js-16-0A0C3C" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/eval_E4-17_properties,_0_failures-2ea043" alt="eval E4: 17 properties, 0 failures">
+  <img src="https://img.shields.io/badge/eval_E4-18_properties,_0_failures-2ea043" alt="eval E4: 18 properties, 0 failures">
   <img src="https://img.shields.io/badge/status-in_development-5D6B7A" alt="in development">
   <img src="https://img.shields.io/badge/licence-MIT-43FE8A" alt="MIT licence">
 </p>
@@ -87,8 +87,8 @@ because if the same input must always give the same answer, a guess is not good 
 Even the AI's dusk explanation is checked: any number in it that code did not compute, and
 the AI's words are replaced by a plain template.
 
-That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 17
-properties, each tried against generated cases (fast-check), on **15,002 cases with 0
+That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 18
+properties, each tried against generated cases (fast-check), on **16,002 cases with 0
 failures** (scorecard `eval/results/2026-11-03.json`).
 
 | Id | The property |
@@ -110,6 +110,7 @@ failures** (scorecard `eval/results/2026-11-03.json`).
 | E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowed tools |
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |
+| E4.7 | A grower session opens only if the server sealed it, unaltered and in date (the grower's pages hold refund approvals) |
 
 The tests were checked by planting bugs in the money code (a total off by a cent, a refund
 limit off by a cent, a missing duplicate check, a ledger that counts a repeat twice); each

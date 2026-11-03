@@ -72,6 +72,7 @@ EVAL_SEED=123456 npm run eval
 | E4.6 | The PayPal Agent Toolkit, as configured, offers the agent exactly its allowlisted tools |
 | E4.6b | The agent never calls a tool outside its allowlist |
 | E4.6c | No tool handed to the model can move money; refunds run only from code |
+| E4.7 | A grower session opens only if the server sealed it, unaltered and in date |
 
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
