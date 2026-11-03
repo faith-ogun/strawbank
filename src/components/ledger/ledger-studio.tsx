@@ -6,10 +6,11 @@
 // build their own views. Loaded with ssr: false (ledger-loader.tsx), because
 // Studio measures the page as it draws.
 
-import { type AgStudioMode, type AgStudioTheme, enableStudioDevValidations, studioTheme } from "ag-studio";
+import { type AgAiHarnessSetup, AgStudioAiModule, type AgPanelConfig, type AgStudioMode, type AgStudioTheme, type AgWidgetsConfig, enableStudioDevValidations, studioTheme } from "ag-studio";
 import { AgStudio, AgStudioProvider, createWidgets } from "ag-studio-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { LedgerRows } from "@/lib/ledger-rows";
+import { ledgerHarness } from "./ledger-agent";
 import { LEDGER_PAGES, ledgerData, ledgerReport } from "./ledger-data";
 import { type LedgerRegistry, paidTakenWidget } from "./paid-taken-widget";
 
@@ -38,13 +39,20 @@ const theme: AgStudioTheme = studioTheme.withParams({
   chartPaletteFills5Color: "#0a1643",
 });
 
+const MODULES = [AgStudioAiModule];
+// Studio shows its AI panel in edit mode, where the assistant can change the page.
+const PANELS: AgPanelConfig = { edit: { left: ["ai"], right: ["edit", "data", "filters"] } };
+
 export default function LedgerStudio({ rows, licenseKey }: { rows: LedgerRows; licenseKey?: string }) {
   const studio = useRef<AgStudio<LedgerRegistry>>(null);
   const [mode, setMode] = useState<AgStudioMode>("view");
   const [page, setPage] = useState<string>(ledgerReport.selectedPageId ?? "stand");
   const data = useMemo(() => ledgerData(rows), [rows]);
+  const ai = useMemo<AgAiHarnessSetup>(() => ({ api }) => ledgerHarness(api, rows), [rows]);
+  // Ours first in the menu, then all of Studio's own.
   const widgets = useMemo(
-    () => createWidgets<LedgerRegistry>({ additionalTypes: [paidTakenWidget], menu: [{ label: "Strawbank", widgetIds: ["paid-taken"] }] }),
+    () => (defaults: AgWidgetsConfig) =>
+      createWidgets<LedgerRegistry>({ additionalTypes: [paidTakenWidget], menu: [{ label: "Strawbank", widgetIds: ["paid-taken"] }, ...defaults.menu] }),
     [],
   );
 
@@ -56,7 +64,7 @@ export default function LedgerStudio({ rows, licenseKey }: { rows: LedgerRows; l
   }, []);
 
   return (
-    <AgStudioProvider licenseKey={licenseKey}>
+    <AgStudioProvider licenseKey={licenseKey} modules={MODULES}>
       <div className="flex h-full flex-col">
         <div className="flex flex-wrap items-center gap-2 border-b border-line bg-canvas px-4 py-2">
           <nav className="flex flex-wrap gap-2 text-sm" aria-label="Ledger pages">
@@ -77,7 +85,7 @@ export default function LedgerStudio({ rows, licenseKey }: { rows: LedgerRows; l
             onClick={() => setMode((m) => (m === "view" ? "edit" : "view"))}
             className="ml-auto rounded-full border border-line-2 px-3 py-1 text-sm font-semibold text-ink"
           >
-            {mode === "view" ? "Build your own view" : "Done editing"}
+            {mode === "view" ? "Ask the assistant, or build your own view" : "Done"}
           </button>
         </div>
         <div className="min-h-0 flex-1">
@@ -87,6 +95,8 @@ export default function LedgerStudio({ rows, licenseKey }: { rows: LedgerRows; l
             data={data}
             initialState={ledgerReport}
             widgets={widgets}
+            ai={ai}
+            panels={PANELS}
             theme={theme}
             mode={mode}
             layout={{ minWidth: 360 }}
