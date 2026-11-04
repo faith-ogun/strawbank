@@ -3,12 +3,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { DisputeActions } from "@/components/grower/dispute-actions";
+import { DisputeActions, SandboxDisputeSteps } from "@/components/grower/dispute-actions";
 import { findStand } from "@/lib/demo-stand";
 import { evidenceNotes } from "@/lib/dispute-evidence";
 import { disputesForStand } from "@/lib/dispute-flow";
 import { formatMoney, toMinor } from "@/lib/money";
-import { canDo } from "@/lib/paypal/disputes";
+import { canDo, offersSandboxStep } from "@/lib/paypal/disputes";
 import { currentGrower } from "@/lib/session";
 
 // Disputes customers have opened with PayPal on payments made at this stand,
@@ -71,6 +71,13 @@ async function List() {
               <p className="mt-3 text-sm text-mint-ink">Evidence sent to PayPal on {new Intl.DateTimeFormat("en-IE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Dublin" }).format(new Date(evidenceSentAt))}.</p>
             ) : (
               <DisputeActions disputeId={dispute.dispute_id} canSend={canDo(dispute, "provide_evidence")} canRefund={canDo(dispute, "accept_claim")} amount={amount} />
+            )}
+            {(offersSandboxStep(dispute, "require-evidence") || offersSandboxStep(dispute, "adjudicate")) && (
+              <SandboxDisputeSteps
+                disputeId={dispute.dispute_id}
+                canAsk={offersSandboxStep(dispute, "require-evidence")}
+                canDecide={offersSandboxStep(dispute, "adjudicate")}
+              />
             )}
           </section>
         );

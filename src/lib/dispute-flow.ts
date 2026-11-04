@@ -13,7 +13,18 @@ import { firestore, whereIn } from "./firestore";
 import type { LedgerCapture, LedgerRefund, WebhookEvent } from "./ledger";
 import { addMinor } from "./money";
 import { noted } from "./paypal/calls";
-import { type Dispute, acceptClaim, canDo, getDispute, listDisputes, provideEvidence, requestedFromSeller } from "./paypal/disputes";
+import {
+  type Dispute,
+  acceptClaim,
+  adjudicate,
+  canDo,
+  getDispute,
+  listDisputes,
+  offersSandboxStep,
+  provideEvidence,
+  requestedFromSeller,
+  requireSellerEvidence,
+} from "./paypal/disputes";
 import { getPayPalOrder } from "./paypal/orders";
 import { holdPhoto, readPhoto } from "./photos";
 import { type BasketRecord, type Sale, readBasket, readSale } from "./sales";
@@ -119,6 +130,28 @@ export async function refundInstead(disputeId: string, standId: string): Promise
   await noted(
     { standId, orderId: record.sale.orderId, who: "grower", what: `accept the customer's claim in dispute ${disputeId}: PayPal refunds them`, endpoint: `POST /v1/customer/disputes/${disputeId}/accept-claim` },
     () => acceptClaim(disputeId, "The grower has accepted your claim. PayPal will refund you."),
+    (r) => ({ status: r.status, debugId: r.debugId, ref: disputeId }),
+  );
+}
+
+export type SandboxAction = "ask-for-evidence" | "decide-for-stand" | "decide-for-customer";
+
+/**
+ * Sandbox only: the steps PayPal's own staff take in a real dispute, so a
+ * dispute can be tried end to end from the grower's page. Offered only when
+ * PayPal lists the step on the dispute.
+ */
+export async function sandboxDisputeStep(disputeId: string, standId: string, action: SandboxAction): Promise<void> {
+  const { dispute, record } = await standDispute(disputeId, standId);
+  const step = action === "ask-for-evidence" ? "require-evidence" : "adjudicate";
+  if (!offersSandboxStep(dispute, step)) throw new DisputeError("PayPal does not offer that sandbox step on this dispute right now", 409);
+  const what =
+    action === "ask-for-evidence"
+      ? `sandbox test: have PayPal ask the stand for evidence in dispute ${disputeId}`
+      : `sandbox test: have PayPal decide dispute ${disputeId} for the ${action === "decide-for-stand" ? "stand" : "customer"}`;
+  await noted(
+    { standId, orderId: record.sale.orderId, who: "grower", what, endpoint: `POST /v1/customer/disputes/${disputeId}/${step}` },
+    () => (action === "ask-for-evidence" ? requireSellerEvidence(disputeId) : adjudicate(disputeId, action === "decide-for-stand" ? "SELLER_FAVOR" : "BUYER_FAVOR")),
     (r) => ({ status: r.status, debugId: r.debugId, ref: disputeId }),
   );
 }

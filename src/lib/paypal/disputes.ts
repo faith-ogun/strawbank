@@ -84,6 +84,24 @@ export async function acceptClaim(disputeId: string, note: string): Promise<{ st
   return { status, debugId };
 }
 
+/**
+ * The sandbox stands in for PayPal's own staff with two steps (customer-disputes
+ * v1, read 4 Nov): require-evidence and adjudicate, each allowed only while the
+ * dispute is under review and PayPal lists it among the dispute's links. The
+ * spec names those links loosely, so this matches the link's address as well.
+ */
+export type SandboxStep = "require-evidence" | "adjudicate";
+
+export function offersSandboxStep(dispute: Dispute, step: SandboxStep): boolean {
+  return (dispute.links ?? []).some((l) => l.rel.replace(/-/g, "_") === step.replace(/-/g, "_") || l.href.split("?")[0].endsWith(`/${step}`));
+}
+
+/** Sandbox only: settles a dispute under review, as PayPal's staff would. */
+export async function adjudicate(disputeId: string, outcome: "SELLER_FAVOR" | "BUYER_FAVOR"): Promise<{ status: number; debugId?: string }> {
+  const { status, debugId } = await call("POST", `/v1/customer/disputes/${encodeURIComponent(disputeId)}/adjudicate`, JSON.stringify({ adjudication_outcome: outcome }));
+  return { status, debugId };
+}
+
 /** Sandbox only: moves a dispute under review to "waiting for the seller", so evidence can be tried. */
 export async function requireSellerEvidence(disputeId: string): Promise<{ status: number; debugId?: string }> {
   const { status, debugId } = await call("POST", `/v1/customer/disputes/${encodeURIComponent(disputeId)}/require-evidence`, JSON.stringify({ action: "SELLER_EVIDENCE" }));
