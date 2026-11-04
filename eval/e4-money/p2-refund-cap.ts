@@ -63,6 +63,20 @@ const decisionWithinCap = fc.property(claimArb, (input) => {
   }
 });
 
+// An order whose basket photo looks like an earlier sale's (a copy of the same
+// photo) never gets a refund from the agent alone; without the flag, the
+// decision is exactly what it would have been.
+const reusedPhotoGoesToGrower = fc.property(claimArb, fc.boolean(), (input, photoLooksReused) => {
+  const flagged = decideRefund({ ...input, photoLooksReused });
+  const plain = decideRefund(input);
+  if (photoLooksReused) {
+    assert(flagged.route !== "agent", "the agent refunded alone on a photo that looks like an earlier sale's");
+    if (plain.route !== "none") assert(flagged.route === "grower" && flagged.amountMinor === plain.amountMinor, "the flag changed the amount");
+  } else {
+    assert(JSON.stringify(flagged) === JSON.stringify(plain), "an unflagged order was decided differently");
+  }
+});
+
 const refundsWithinCapture = fc.asyncProperty(scenarioArb, async (scenario) => {
   const { captures, store, paypal } = await simulate(scenario);
   assert(paypal.overRefundsRefused === 0, "we asked PayPal for more than was left on a capture");
@@ -155,5 +169,10 @@ export const p2 = [
     "E4.2c",
     "A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending",
     gatewaySendsCodesAmount,
+  ),
+  moneyProperty(
+    "E4.2d",
+    "A refund on an order whose basket photo looks like an earlier sale's always waits for the grower",
+    reusedPhotoGoesToGrower,
   ),
 ];

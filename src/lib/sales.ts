@@ -8,6 +8,7 @@ import { FieldValue } from "@google-cloud/firestore";
 import { firestore } from "./firestore";
 import type { Currency } from "./money";
 import type { OrderLine } from "./orders";
+import type { PhotoPrint, PrintedSale } from "./photo-reuse";
 
 export type BasketRecord = {
   countId: string;
@@ -17,6 +18,10 @@ export type BasketRecord = {
   photo: string;
   counts: Record<string, number>;
   confidence: Record<string, number>;
+  /** The photo's fingerprint, for the reuse check (src/lib/photo-reuse.ts). */
+  print?: PhotoPrint;
+  /** A paid sale whose photo this one looks like a copy of. */
+  looksLike?: { orderId: string; distance: number };
 };
 
 export type Sale = {
@@ -30,6 +35,9 @@ export type Sale = {
   /** From the capture response our server received. The webhook confirms it in the ledger. */
   captureId?: string;
   captureStatus?: string;
+  /** From the basket count: its photo's fingerprint, and a paid sale it looks like a copy of. */
+  photoPrint?: PhotoPrint;
+  photoLooksLike?: { orderId: string; distance: number };
 };
 
 const baskets = () => firestore().collection("baskets");
@@ -53,6 +61,15 @@ export async function recordCapture(orderId: string, captureId: string, captureS
 
 export async function readSale(orderId: string): Promise<Sale | undefined> {
   return (await orders().doc(orderId).get()).data() as Sale | undefined;
+}
+
+/** The fingerprints of the stand's paid sales' photos, for the reuse check. */
+export async function paidSalePrints(standId: string): Promise<PrintedSale[]> {
+  const snap = await orders().where("standId", "==", standId).get();
+  return snap.docs.flatMap((d) => {
+    const sale = d.data() as Sale;
+    return sale.photoPrint && sale.captureId ? [{ orderId: sale.orderId, print: sale.photoPrint }] : [];
+  });
 }
 
 export async function daySales(standId: string, date: string): Promise<Sale[]> {

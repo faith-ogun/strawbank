@@ -1,8 +1,10 @@
 import { standDate, standToday } from "@/lib/days";
 import { FACE_REFUSAL, SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
 import { withFaceCheck } from "@/lib/ai/faces";
+import { photoPrint } from "@/lib/photo-print";
+import { REUSED_REFUSAL, reuseVerdict } from "@/lib/photo-reuse";
 import { savePhoto } from "@/lib/photos";
-import { saveBasket } from "@/lib/sales";
+import { paidSalePrints, saveBasket } from "@/lib/sales";
 import { limited } from "@/lib/rate-limit";
 
 // F2 step 2: a basket photo -> a count per item on today's list, with how sure
@@ -13,6 +15,9 @@ import { limited } from "@/lib/rate-limit";
 // A photo with a face in it is refused and never kept: the customer is asked to
 // take it again. Gemini looks for a face while it counts, and Cloud Vision at the
 // same moment; either one finding a face refuses it (decided 3 and 4 Nov, eval E6).
+// A photo an earlier paid sale already used is refused too, and a re-saved copy
+// of one is kept but flagged, so the agent never refunds that order alone
+// (decided 4 Nov, eval E6 and properties E4.14, E4.2d).
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -35,6 +40,13 @@ export async function POST(request: Request) {
 
   const data = new Uint8Array(await photo.arrayBuffer());
   const date = standDate();
+  // Worked out while the photo is counted. If it fails, the sale goes ahead unchecked.
+  const reuse = Promise.all([photoPrint(data), paidSalePrints(standId)])
+    .then(([print, earlier]) => ({ print, ...reuseVerdict(print, earlier) }))
+    .catch((error) => {
+      console.error("reuse check failed:", error instanceof Error ? error.message : error);
+      return undefined;
+    });
   try {
     const count = await withFaceCheck(
       data,
@@ -42,6 +54,11 @@ export async function POST(request: Request) {
     );
     // Only after the count: a photo with a face is never written anywhere.
     if (count.face) return Response.json({ error: FACE_REFUSAL, refused: "face" }, { status: 422 });
+    const checked = await reuse;
+    if (checked?.verdict === "same-photo") {
+      console.info(`photo refused: the same photo as paid sale ${checked.orderId}`);
+      return Response.json({ error: REUSED_REFUSAL, refused: "reused" }, { status: 422 });
+    }
     const path = await savePhoto(`baskets/${standId}/${date}`, data, photo.type).catch((error) => {
       console.error("basket photo not kept:", error instanceof Error ? error.message : error);
       return undefined;
@@ -49,7 +66,8 @@ export async function POST(request: Request) {
     let countId: string | undefined;
     if (path) {
       countId = crypto.randomUUID();
-      await saveBasket({ countId, standId, date, photo: path, counts: count.counts, confidence: count.confidence }).catch((error) => {
+      const looksLike = checked?.verdict === "looks-like" ? { orderId: checked.orderId, distance: checked.distance } : undefined;
+      await saveBasket({ countId, standId, date, photo: path, counts: count.counts, confidence: count.confidence, print: checked?.print, looksLike }).catch((error) => {
         console.error("basket record not kept:", error instanceof Error ? error.message : error);
         countId = undefined;
       });

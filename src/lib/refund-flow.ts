@@ -35,6 +35,7 @@ const REASONS: Record<string, string> = {
   "earlier refunds leave less than the claim": "earlier refunds leave less than you asked for",
   "no basket photo to recount": "there is no basket photo to check",
   "the recount did not work": "the agent could not recount the basket photo just now",
+  "the basket photo looks like an earlier sale's": "the basket photo looks like one used for an earlier sale",
 };
 
 async function captureFor(orderId: string, known?: string): Promise<LedgerCapture | undefined> {
@@ -162,6 +163,7 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
     recountConfidence,
     refundableMinor: await refundableNow(capture.captureId),
     limitMinor: found.stand.refundLimitMinor,
+    photoLooksReused: Boolean(sale.photoLooksLike),
   });
   const reasons = decision.route === "agent" ? [] : decision.reasons;
   if (!basket && decision.route !== "none") reasons.unshift("no basket photo to recount");

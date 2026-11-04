@@ -107,21 +107,21 @@ const TROUBLES = [
     title: "The tin gets stolen.",
     text: (
       <>
-        Sometimes again and again: reported in{" "}
+        Sometimes again and again: in{" "}
         <a
           className="underline decoration-line-2 underline-offset-2 hover:decoration-ink"
-          href="https://www.lep.co.uk/news/crime/callous-thieves-strike-again-after-honesty-box-stolen-from-ribble-valley-farm-3261252"
+          href="https://www.rte.ie/news/leinster/2023/0330/1367373-honesty-box-eggs"
         >
-          Lancashire
-        </a>{" "}
-        and in{" "}
-        <a
-          className="underline decoration-line-2 underline-offset-2 hover:decoration-ink"
-          href="https://globalnews.ca/news/11323028/lake-country-b-c-farm-stand-operating-on-the-honour-system-raided"
-        >
-          British Columbia
+          Laois
         </a>
-        .
+        , two children closed their egg honesty box after its fourth robbery, and in{" "}
+        <a
+          className="underline decoration-line-2 underline-offset-2 hover:decoration-ink"
+          href="https://www.farmersjournal.ie/tillage/news/kildare-farmer-tracks-down-egg-and-potato-thieves-838832"
+        >
+          Kildare
+        </a>{" "}
+        thieves took a farm&apos;s eggs and potatoes.
       </>
     ),
   },

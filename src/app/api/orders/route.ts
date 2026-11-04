@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     );
     const totalMinor = orderTotalMinor(lines);
     try {
-      await recordSale({ orderId: order.orderId, standId, date, lines, totalMinor, currency, countId });
+      const photo = countId ? { photoPrint: basket?.print, photoLooksLike: basket?.looksLike } : {};
+      await recordSale({ orderId: order.orderId, standId, date, lines, totalMinor, currency, countId, ...photo });
     } catch (error) {
       console.error("order not kept:", error instanceof Error ? error.message : error);
       return Response.json({ error: "the stand could not note this basket; please try again" }, { status: 503 });

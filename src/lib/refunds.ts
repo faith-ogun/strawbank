@@ -66,6 +66,8 @@ export function decideRefund(input: {
   recountConfidence: number;
   refundableMinor: number;
   limitMinor: number;
+  /** The basket photo looks like a copy of an earlier paid sale's (src/lib/photo-reuse.ts). */
+  photoLooksReused?: boolean;
 }): RefundDecision {
   const due = refundDueMinor(input.lines, input.claimed);
   if (due === 0) return { route: "none", reasons: ["the claim matches what was charged"] };
@@ -82,6 +84,7 @@ export function decideRefund(input: {
   if (contradicted.length > 0) reasons.push("the photo does not support the claim");
   if (input.recountConfidence < MIN_RECOUNT_CONFIDENCE) reasons.push("the recount is uncertain");
   if (amountMinor > assertMinor(input.limitMinor)) reasons.push("over the grower's limit");
+  if (input.photoLooksReused) reasons.push("the basket photo looks like an earlier sale's");
 
   return reasons.length === 0 ? { route: "agent", amountMinor } : { route: "grower", amountMinor, reasons };
 }
