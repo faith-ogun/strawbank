@@ -8,6 +8,7 @@
 import { Output, generateText } from "ai";
 import { z } from "zod";
 import type { CountableItem, ThinkingLevel } from "./count";
+import { hedged } from "./hedged";
 import { type ModelSpeed, geminiModel } from "./model";
 
 export type CardLine = {
@@ -58,6 +59,14 @@ const replySchema = z.object({
 export const CARD_SPEED: ModelSpeed = "careful";
 export const CARD_THINKING: ThinkingLevel = "low";
 
+/**
+ * A card normally reads in about 4 seconds, but on 4 Nov one call stalled until
+ * its 45-second timeout (eval E6). A second try now starts at 10 seconds and a
+ * third at 25, each allowed 30; the first answer wins.
+ */
+const CARD_TRIES_AT_MS = [0, 10_000, 25_000];
+const CARD_TIMEOUT_MS = 30_000;
+
 /** Prices are written like "0.60": always two decimals, so code can read them without rounding. */
 const twoDecimals = (price: string) => (price.includes(".") ? price.padEnd(price.indexOf(".") + 3, "0") : `${price}.00`);
 
@@ -71,23 +80,27 @@ export async function readPriceCard(input: {
   const known = input.known.map((i) => `- ${i.key}: ${i.name}`).join("\n") || "(none yet)";
   // Reading a few handwritten lines needs little reasoning; more only adds waiting.
   const options = { thinkingConfig: { thinkingLevel: input.thinking ?? CARD_THINKING } };
-  const { output } = await generateText({
-    model: geminiModel(input.speed ?? CARD_SPEED),
-    providerOptions: { vertex: options, google: options },
-    maxRetries: 1,
-    timeout: { totalMs: 45_000 },
-    instructions: INSTRUCTIONS,
-    output: Output.object({ schema: replySchema }),
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: `The stand's known items:\n${known}\n\nRead this price card.` },
-          { type: "file", mediaType: input.mediaType, data: input.photo },
-        ],
-      },
-    ],
-  });
+  const ask = (abortSignal: AbortSignal) =>
+    generateText({
+      model: geminiModel(input.speed ?? CARD_SPEED),
+      providerOptions: { vertex: options, google: options },
+      // hedged() is the retry: a failed call starts the next one at once.
+      maxRetries: 0,
+      timeout: { totalMs: CARD_TIMEOUT_MS },
+      abortSignal,
+      instructions: INSTRUCTIONS,
+      output: Output.object({ schema: replySchema }),
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `The stand's known items:\n${known}\n\nRead this price card.` },
+            { type: "file", mediaType: input.mediaType, data: input.photo },
+          ],
+        },
+      ],
+    });
+  const { output } = await hedged(ask, CARD_TRIES_AT_MS);
 
   const seen = new Set<string>();
   const lines: CardLine[] = [];
