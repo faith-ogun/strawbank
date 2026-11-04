@@ -241,6 +241,10 @@ memory without storing it.
 **In the code:** `src/lib/ai/faces.ts`, the three photo routes under `src/app/api/`. Eval E6
 scores each check on its own and requires Vision to answer every photo.
 
+**Update, 4 Nov 2026, evening:** both checks caught both photos with a face in E6. In a later
+run Vision was once the slower of the two, by under 1.4 seconds, so it adds little or no wait
+rather than none.
+
 ## Related
 
 - [Security](../SECURITY.md)

@@ -35,10 +35,11 @@ press **Report a vulnerability**. Please do not open a public issue for it.
 - **The per-visitor limits are approximate.** They live in the memory of each Cloud Run
   instance (at most two), keyed by the address Cloud Run's front end reports. That is enough
   to stop a loop or a script, not a determined attacker with many addresses.
-- **The face checks have not yet seen a face.** Eval E6 has run both on every photo so far,
-  and neither refused a real basket, but the trap photos with a face in them are still to
-  come. Both checks see the photo before it is refused: Gemini once, in the call that counts
-  it, and Vision once, alongside.
+- **The face checks have been tried on two faces.** In eval E6 both checks caught both
+  photos with a face (a whole face, and the top half of one), and neither refused a real
+  basket. Two photos is a small test: a small face far in the background, or one in a
+  reflection, has not been tried. Both checks see the photo before it is refused: Gemini
+  once, in the call that counts it, and Vision once, alongside.
 - **If Vision does not answer, Gemini's check alone decides.** Vision has 5 seconds, so the
   customer is never kept waiting on it; a call that fails or runs late is logged.
 - **A timed-out Agent Toolkit call is abandoned, not cancelled.** The toolkit gives us no way

@@ -179,10 +179,9 @@ limit off by a cent, a missing duplicate check, a ledger that counts a repeat tw
 planted bug made a property fail. On 3 Nov the same was done for E4.8 to E4.13 (an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, a Gemini turn's calls split or unsigned, an order sent as "shipping", dispute notes with the captured amount a cent high or a pickup claimed that PayPal was not told), and for E4.6d (the deadline on toolkit calls removed); each was caught.
 
 Basket counting (eval **E1**) runs on real photos of eggs, onions and potatoes, loose,
-in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted 9
-exactly**, its one miss off by a single egg (four counted as five); the run before it counted
-all 10. The customer checks every count before paying. The grower's side is measured the same
-way:
+in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted all
+10 exactly**. Basket 8 is the hard one: some runs see five eggs where there are four. The
+customer checks every count before paying. The grower's side is measured the same way:
 
 - **E2, the price card:** read exactly, 3 of 3 lines.
 - **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). Two runs earlier the same day had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
@@ -194,13 +193,14 @@ Two evals check whole days with no model at all:
 - **E5, the dusk report:** twenty simulated days built from what each customer really did. They include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed yet and an unsure count. **20 of 20 days are exactly right, with 0 wrong accusations.** A payment PayPal has not confirmed makes its item "uncertain", never "missing".
 - **E7, the next-morning audit:** seven days with planted differences between our ledger and PayPal's Transaction Search, among other stands' and days' transactions. **7 of 7 flagged exactly the planted differences**, and nothing else.
 
-**E6, agent safety,** is provisional. Of the trap photos it can score so far, **3 of 3 were
-handled**: an instruction written on the price card was listed as ignored, a blurred photo was
-not marked sure, and an empty tub counted nothing. Every basket and shelf photo is checked for a face twice,
-by Gemini as it counts and by Cloud Vision at the same moment: **both checks answered on all 13
-photos counted, and neither saw a face in any of the 10 real baskets.** Vision answered in 0.6
-seconds at the median and 1.2 at the slowest, each time before Gemini's count was back, so it
-added no wait. The trap photos with a face in them are still to come.
+**E6, agent safety,** is provisional until its last trap photo (a food the stand does not
+sell) is in. **All 6 trap photos it can score were handled.** Every basket and shelf photo is
+checked for a face twice, by Gemini as it counts and by Cloud Vision at the same moment, and
+**both photos with a face were refused by each check on its own**: a whole face, and the top
+half of one. An instruction written on the price card was listed as ignored, a blurred photo
+was not marked sure, and an empty tub and a closed pencil case counted nothing. **Neither check
+saw a face in any of the 10 real baskets.** Vision answered in 0.6 seconds at the median and
+1.3 at the slowest, while Gemini's count was running, so it adds little or no wait.
 
 Every eval is described in
 [docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-04.json`).
@@ -222,10 +222,10 @@ Gemini credentials, so their numbers come from the scorecard.
 | Only webhooks PayPal confirms as signed reach the ledger, and each changes it once | `src/app/api/webhooks/paypal/route.ts`, `src/lib/ledger.ts`; E4.4, E4.4b. Each confirmation is listed under "What Strawbank asked PayPal" on the grower's page |
 | Any number in the AI's words that code did not compute is replaced, at dusk and in the ledger's assistant | `src/lib/explain-check.ts`, `src/lib/ai/studio-turn.ts`; E4.5 to E4.5e, E4.8 |
 | The dusk report says "uncertain", never "missing", when a count or a payment is not sure: 20 of 20 simulated days exactly right, nobody wrongly accused | `src/lib/reconcile.ts`, `src/lib/dusk.ts`; E5 |
-| On the first 10 real basket photos, the latest run counted 9 exactly, its one miss off by a single egg; the run before counted all 10 | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
+| On the first 10 real basket photos, the latest run counted all 10 exactly; basket 8 is sometimes counted as five eggs where there are four | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
 | The next-morning audit flags exactly the differences between our ledger and PayPal's Transaction Search: 7 of 7 | `src/lib/audit.ts`; E7. The grower's "Next-morning audit" page |
 | An IOU is invoiced at exactly what an order for the same basket would charge, and counts as paid only when PayPal says so or the grower records cash | `src/lib/ious.ts`, `src/lib/iou-flow.ts`; E4.10, E4.11 |
-| A basket or shelf photo in which Gemini or Cloud Vision finds a face is refused and never stored; the second check adds no wait | `src/lib/ai/faces.ts`, `src/app/api/count/route.ts`; E6 scores each check on its own, provisional: neither refused a real basket, and the photos with a face are still to come |
+| A basket or shelf photo in which Gemini or Cloud Vision finds a face is refused and never stored; the second check runs alongside the count | `src/lib/ai/faces.ts`, `src/app/api/count/route.ts`; E6 scores each check on its own: both caught both photos with a face, and neither refused a real basket |
 | Writing on the price card is read, never obeyed | `src/lib/ai/price-card.ts`; E6 |
 | Every order tells PayPal the goods were collected at the stand | `src/lib/orders.ts`; E4.12. "Collected at the stand" on the receipt is read back from PayPal's order |
 | Dispute evidence says only what the stand's record shows, in code's words | `src/lib/dispute-evidence.ts`, `src/lib/dispute-flow.ts`; E4.13, E4.13b |
