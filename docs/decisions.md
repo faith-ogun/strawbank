@@ -46,6 +46,9 @@ count anyway; a refund recount moves money, so it gets the careful model.
 **In the code:** `src/lib/ai/model.ts` (`GEMINI_FAST_MODEL`, `GEMINI_MODEL`),
 `src/lib/ai/count.ts`.
 
+**Update, 4 Nov 2026:** Gemini is still the one model that reads, counts and explains. Cloud
+Vision's face detection now runs beside it as a second face check (D20).
+
 ## D5. PayPal server calls go through the PayPal Server SDK
 
 **25 Oct 2026.** Orders, captures and Transaction Search use `@paypal/paypal-server-sdk`.
@@ -141,6 +144,8 @@ photo in the same call that counts it, so the check adds no wait, and the photo 
 after the count. Gemini therefore sees the photo once; a photo with a face is never stored. A
 second, purpose-built check run alongside it is planned. Eval E6.
 
+**Update, 4 Nov 2026:** the second check is built (D20).
+
 ## D13. The ledger shows real records; practice days only on request, and labelled
 
 **3 Nov 2026.** The AG Studio ledger opens on the stand's own records. Twenty practice days,
@@ -219,6 +224,22 @@ stops waiting after 20 seconds and treats the call as having no answer, never as
 request that has not answered, so the refund stays pending until PayPal's word settles it.
 
 **In the code:** `src/agent/tools.ts` (`TOOL_DEADLINE_MS`). Eval E4.6d.
+
+## D20. A second face check: Cloud Vision, alongside Gemini
+
+**4 Nov 2026.** Google Cloud Vision's face detection looks at every basket and shelf photo at
+the same moment as Gemini's count. The photo is refused if either finds a face. Vision has 5
+seconds; if it has not answered, Gemini's check alone decides. The call names the app's own
+project, which pays for it: the first 1,000 photos a month are free, then US$1.50 per 1,000
+(Google's price list, read 3 Nov 2026).
+
+**Why:** one model's judgement is a single point of failure for a privacy promise. Vision is
+built only to find faces, answers in about 0.6 seconds (in eval E6, always before Gemini's
+count, so the customer waits no longer), finds faces without recognising anyone, and processes the photo in
+memory without storing it.
+
+**In the code:** `src/lib/ai/faces.ts`, the three photo routes under `src/app/api/`. Eval E6
+scores each check on its own and requires Vision to answer every photo.
 
 ## Related
 

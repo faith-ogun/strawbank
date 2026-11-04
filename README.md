@@ -89,7 +89,7 @@ At dusk, one more photo of the shelf, and the grower gets the day's truth in pla
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/architecture-dark.svg">
-    <img src="assets/readme/architecture.svg" width="880" alt="Architecture: the customer's and grower's phones talk to the Next.js app on Cloud Run. Inside it, the AI steps (on Gemini) count, read and explain, and plain code does totals, refunds, caps, gaps, IOU prices, dispute evidence and the audit. A numbers check replaces any number in the AI's words that code did not compute. Only plain code talks to PayPal; PayPal's signed webhooks come back through a route that confirms each signature, into Firestore.">
+    <img src="assets/readme/architecture.svg" width="880" alt="Architecture: the customer's and grower's phones talk to the Next.js app on Cloud Run. Inside it, the AI steps (on Gemini) count, read and explain, Cloud Vision checks each photo for a face, and plain code does totals, refunds, caps, gaps, IOU prices, dispute evidence and the audit. A numbers check replaces any number in the AI's words that code did not compute. Only plain code talks to PayPal; PayPal's signed webhooks come back through a route that confirms each signature, into Firestore.">
   </picture>
 </p>
 
@@ -143,7 +143,7 @@ any number in its words that the ledger's own tools did not return, and code's l
 
 That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 26
 properties, each tried against generated cases (fast-check), on **22,100 cases with 0
-failures** (scorecard `eval/results/2026-11-03.json`).
+failures** (scorecard `eval/results/2026-11-04.json`).
 
 | Id | The property |
 |---|---|
@@ -179,9 +179,10 @@ limit off by a cent, a missing duplicate check, a ledger that counts a repeat tw
 planted bug made a property fail. On 3 Nov the same was done for E4.8 to E4.13 (an invoice price one cent high, a part-paid IOU counted as paid, the assistant's number check removed, a Gemini turn's calls split or unsigned, an order sent as "shipping", dispute notes with the captured amount a cent high or a pickup claimed that PayPal was not told), and for E4.6d (the deadline on toolkit calls removed); each was caught.
 
 Basket counting (eval **E1**) runs on real photos of eggs, onions and potatoes, loose,
-in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted all
-10 exactly**; an earlier run the same day counted 9, its one miss off by a single egg. The
-grower's side is measured the same way:
+in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run counted 9
+exactly**, its one miss off by a single egg (four counted as five); the run before it counted
+all 10. The customer checks every count before paying. The grower's side is measured the same
+way:
 
 - **E2, the price card:** read exactly, 3 of 3 lines.
 - **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). Two runs earlier the same day had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
@@ -195,11 +196,14 @@ Two evals check whole days with no model at all:
 
 **E6, agent safety,** is provisional. Of the trap photos it can score so far, **3 of 3 were
 handled**: an instruction written on the price card was listed as ignored, a blurred photo was
-not marked sure, and an empty tub counted nothing. **None of the 10 real basket photos was
-refused for a face.** The trap photos with a face in them are still to come.
+not marked sure, and an empty tub counted nothing. Every basket and shelf photo is checked for a face twice,
+by Gemini as it counts and by Cloud Vision at the same moment: **both checks answered on all 13
+photos counted, and neither saw a face in any of the 10 real baskets.** Vision answered in 0.6
+seconds at the median and 1.2 at the slowest, each time before Gemini's count was back, so it
+added no wait. The trap photos with a face in them are still to come.
 
 Every eval is described in
-[docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-03.json`).
+[docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-04.json`).
 
 ---
 
@@ -218,10 +222,10 @@ Gemini credentials, so their numbers come from the scorecard.
 | Only webhooks PayPal confirms as signed reach the ledger, and each changes it once | `src/app/api/webhooks/paypal/route.ts`, `src/lib/ledger.ts`; E4.4, E4.4b. Each confirmation is listed under "What Strawbank asked PayPal" on the grower's page |
 | Any number in the AI's words that code did not compute is replaced, at dusk and in the ledger's assistant | `src/lib/explain-check.ts`, `src/lib/ai/studio-turn.ts`; E4.5 to E4.5e, E4.8 |
 | The dusk report says "uncertain", never "missing", when a count or a payment is not sure: 20 of 20 simulated days exactly right, nobody wrongly accused | `src/lib/reconcile.ts`, `src/lib/dusk.ts`; E5 |
-| On the first 10 real basket photos, the latest run counted all 10 exactly | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
+| On the first 10 real basket photos, the latest run counted 9 exactly, its one miss off by a single egg; the run before counted all 10 | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
 | The next-morning audit flags exactly the differences between our ledger and PayPal's Transaction Search: 7 of 7 | `src/lib/audit.ts`; E7. The grower's "Next-morning audit" page |
 | An IOU is invoiced at exactly what an order for the same basket would charge, and counts as paid only when PayPal says so or the grower records cash | `src/lib/ious.ts`, `src/lib/iou-flow.ts`; E4.10, E4.11 |
-| A basket or shelf photo with a face in it is refused and never stored | `src/lib/ai/count.ts`, `src/app/api/count/route.ts`; E6, provisional: no real basket was refused, and the photos with a face are still to come |
+| A basket or shelf photo in which Gemini or Cloud Vision finds a face is refused and never stored; the second check adds no wait | `src/lib/ai/faces.ts`, `src/app/api/count/route.ts`; E6 scores each check on its own, provisional: neither refused a real basket, and the photos with a face are still to come |
 | Writing on the price card is read, never obeyed | `src/lib/ai/price-card.ts`; E6 |
 | Every order tells PayPal the goods were collected at the stand | `src/lib/orders.ts`; E4.12. "Collected at the stand" on the receipt is read back from PayPal's order |
 | Dispute evidence says only what the stand's record shows, in code's words | `src/lib/dispute-evidence.ts`, `src/lib/dispute-flow.ts`; E4.13, E4.13b |
@@ -243,6 +247,8 @@ The stack, as each part lands:
   Toolkit for the agent's tools, and the PayPal Server SDK, written with the **APIMatic
   Context Plugin**.
 - **Gemini** on Google Vertex AI, through the Vercel AI SDK: reading, counting, explaining.
+- **Cloud Vision** face detection, run alongside Gemini's count as a second check for a
+  person in the photo. It finds faces; it does not recognise anyone.
 - **AG Studio** by AG Grid: the grower's ledger. Four pre-built pages, the stand's own theme,
   a custom "paid versus taken" widget that filters the page by item, and Strawbank's own agent,
   which hands the building to Studio's planning, page, widget and data agents. Every agent runs
@@ -286,6 +292,7 @@ login for judges: to come.
 | `src/lib/ious.ts`, `src/lib/iou-flow.ts`, `src/lib/paypal/invoices.ts` | the IOU: the invoice body (same prices as an order), PayPal Invoicing, and PayPal's word on each |
 | `src/lib/dispute-evidence.ts`, `src/lib/dispute-flow.ts`, `src/lib/paypal/disputes.ts` | disputes: the evidence pack from the stand's record, PayPal's Disputes API, and the photo hold |
 | `src/lib/ledger-rows.ts`, `src/components/ledger/` | the ledger in AG Studio: rows built by code, the report, the custom widget, the agent and its Gemini adapter |
+| `src/lib/ai/count.ts`, `src/lib/ai/faces.ts` | the basket and shelf count on Gemini, and the two face checks: Gemini's in the same call, Cloud Vision's alongside it |
 | `src/lib/ai/studio-turn.ts` | one turn of the ledger's agents on Gemini; any number in their words must be one the ledger's tools returned |
 | `src/lib/sales.ts`, `src/lib/photos.ts` | each order and basket count, and the photo kept as evidence for 30 days |
 | `src/lib/explain-check.ts` | rejects AI text with a number code did not compute |
