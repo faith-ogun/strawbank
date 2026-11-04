@@ -247,8 +247,8 @@ function MoneyRule() {
 
         <div className="mt-14 grid gap-px overflow-hidden rounded-[22px] border border-white/15 bg-white/15 sm:grid-cols-3">
           {[
-            { n: "26", what: "money properties, each a rule that must always hold" },
-            { n: "22,100", what: "generated cases tried against them" },
+            { n: "28", what: "money properties, each a rule that must always hold" },
+            { n: "24,100", what: "generated cases tried against them" },
             { n: "0", what: "failures" },
           ].map((s) => (
             <div key={s.what} className="bg-ink p-6">

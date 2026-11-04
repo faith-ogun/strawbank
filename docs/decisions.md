@@ -245,6 +245,35 @@ scores each check on its own and requires Vision to answer every photo.
 run Vision was once the slower of the two, by under 1.4 seconds, so it adds little or no wait
 rather than none.
 
+## D21. A reused basket photo is refused, and a re-saved copy flagged
+
+**4 Nov 2026.** Each basket photo gets a fingerprint on the server: its SHA-256 and a 64-bit
+difference hash. The same bytes as a paid sale's photo are refused at the till. A copy within
+5 bits is let through but flagged on the order, and the agent never refunds a flagged order
+alone. Only paid sales count, so a customer who cancels in PayPal's window and tries again is
+not refused.
+
+**Why:** on the eval photos, a re-saved, shrunk or brightened copy was at most 4 bits from its
+original and two different photos were never closer than 8, so 5 separates them. A fresh
+photo of the same basket was 8 bits away and passes, because a customer retaking a photo is
+normal. Two honest baskets in the same tub can look alike, so a near copy is flagged, never
+refused. A cropped copy can be 12 bits away, and is not caught.
+
+**In the code:** `src/lib/photo-reuse.ts`, `src/lib/photo-print.ts`, `src/app/api/count/route.ts`,
+`src/lib/refunds.ts`. Properties E4.14 and E4.2d; eval E6.
+
+## D22. Sandbox test steps on a dispute
+
+**4 Nov 2026.** The grower's disputes page offers the sandbox's two stand-ins for PayPal's own
+staff, require-evidence and adjudicate, only when PayPal lists the step on the dispute, and
+labelled as sandbox test steps.
+
+**Why:** a dispute in the sandbox otherwise waits for nobody, so the flow could not be tried
+end to end.
+
+**In the code:** `src/lib/paypal/disputes.ts`, `src/lib/dispute-flow.ts`,
+`src/components/grower/dispute-actions.tsx`.
+
 ## Related
 
 - [Security](../SECURITY.md)

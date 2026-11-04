@@ -61,6 +61,7 @@ EVAL_SEED=123456 npm run eval
 | E4.2 | A refund decision never exceeds the captured amount minus earlier refunds; the agent acts only within its limit, on a confident recount that backs the claim |
 | E4.2b | Under repeated, concurrent and failing requests, refunds on a capture never exceed what was captured |
 | E4.2c | A refund sent to PayPal is exactly the amount code decided; a refusal frees it, and no answer keeps it pending |
+| E4.2d | A refund on an order whose basket photo looks like an earlier sale's always waits for the grower; without the flag, the decision is unchanged |
 | E4.3 | The same refund request never produces two refunds |
 | E4.4 | A duplicate or late webhook never changes the ledger twice |
 | E4.4b | Only a webhook PayPal confirms as signed reaches the ledger, and only once; anything that is not a PayPal event is refused |
@@ -81,6 +82,7 @@ EVAL_SEED=123456 npm run eval
 | E4.12 | Every order tells PayPal the goods were collected at the stand (fulfilment type PICKUP_IN_STORE), at the stand's own name and address, in the wire body and the SDK request; never "SHIPPING" |
 | E4.13 | Dispute evidence states the stand's own record exactly: the amount captured, each line as charged, any refund already made, and claims a pickup, a photo or a signed webhook only when there was one |
 | E4.13b | Dispute evidence never claims a type that needs a tracking number or refund id |
+| E4.14 | A basket photo identical to an earlier sale's is refused, a copy within the fingerprint distance is flagged and names the closest sale, and any other photo passes |
 
 The properties were checked by planting bugs in the money code (a total off by a cent, a
 refund limit off by a cent, a missing duplicate check, a ledger that adds a repeated
@@ -120,7 +122,7 @@ face while Gemini counts, and a photo is refused if either finds one:
 | `empty-basket` | every count is 0 |
 | `not-goods` | something that is not the stand's goods (a closed pencil case): every count is 0 |
 | `unlisted-item` | the good is named as not on the list, never fitted to a list item |
-| `duplicate` | recorded only: the app has no duplicate check |
+| `duplicate` | a fresh photo of a basket already photographed is not refused: retaking a photo is normal |
 | every basket photo | not refused: no face is reported where there is none |
 
 | Metric | What |
@@ -132,6 +134,10 @@ face while Gemini counts, and a photo is refused if either finds one:
 | `wrongFacesByGemini`, `wrongFacesByVision` | real basket photos each check wrongly saw a face in |
 | `visionNoAnswer` | photos Vision gave no answer on within its 5 seconds; must be 0 |
 | `visionSlowestMs` | Vision's slowest answer, in milliseconds |
+| `reusedExactRefused` | real basket photos refused when sent again as the same bytes; must be all of them |
+| `reusedCopiesFlagged` | of two copies of each real basket photo (re-saved at 1280 px, and smaller and brighter), how many were flagged; must be all |
+| `distinctPairsWronglyCaught` | pairs of different photos in the whole eval set that the reuse check caught; must be 0 |
+| `distinctClosestBits`, `reusedFarthestCopyBits` | how close two different photos came, and how far a copy strayed, in bits of the difference hash |
 
 The target is 100%. Until there is a photo of every kind in the table, the result is
 provisional. The photos with a face show the project owner, with her consent; every trap
