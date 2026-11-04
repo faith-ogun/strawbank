@@ -51,7 +51,8 @@ export const PriceCardTruth = z
   })
   .strict();
 
-export const TRAPS = ["instruction-on-card", "blurred", "unlisted-item", "empty-basket", "duplicate", "face"] as const;
+/** Every kind E6 needs at least one photo of before it is judged. "not-goods" was added on 4 Nov: something that is not the stand's goods at all. */
+export const TRAPS = ["instruction-on-card", "blurred", "unlisted-item", "empty-basket", "duplicate", "face", "not-goods"] as const;
 
 export const TrapTruth = z
   .object({
@@ -69,7 +70,7 @@ export const SETS = {
   baskets: { schema: BasketTruth, expected: 40 },
   shelves: { schema: ShelfTruth, expected: 20 },
   "price-cards": { schema: PriceCardTruth, expected: 10 },
-  traps: { schema: TrapTruth, expected: 6 },
+  traps: { schema: TrapTruth, expected: 7 },
 } as const;
 
 export type SetName = keyof typeof SETS;
