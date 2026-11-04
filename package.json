@@ -20,6 +20,7 @@
     "ag-studio": "3.0.0",
     "ag-studio-react": "3.0.0",
     "ai": "^7.0.152",
+    "google-auth-library": "10.9.1",
     "next": "16.4.3",
     "qrcode": "1.5.4",
     "react": "19.3.0",

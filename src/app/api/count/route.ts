@@ -1,5 +1,6 @@
 import { standDate, standToday } from "@/lib/days";
 import { FACE_REFUSAL, SURE_CONFIDENCE, countBasket } from "@/lib/ai/count";
+import { withFaceCheck } from "@/lib/ai/faces";
 import { savePhoto } from "@/lib/photos";
 import { saveBasket } from "@/lib/sales";
 import { limited } from "@/lib/rate-limit";
@@ -10,7 +11,8 @@ import { limited } from "@/lib/rate-limit";
 // so a refund request can be recounted from it (F4). If keeping it fails, the
 // customer still gets their count; the order just has no photo behind it.
 // A photo with a face in it is refused and never kept: the customer is asked to
-// take it again (decided 3 Nov, eval E6).
+// take it again. Gemini looks for a face while it counts, and Cloud Vision at the
+// same moment; either one finding a face refuses it (decided 3 and 4 Nov, eval E6).
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -34,11 +36,10 @@ export async function POST(request: Request) {
   const data = new Uint8Array(await photo.arrayBuffer());
   const date = standDate();
   try {
-    const count = await countBasket({
-      photo: data,
-      mediaType: photo.type,
-      items: found.catalogue.map(({ key, name, looks }) => ({ key, name, looks })),
-    });
+    const count = await withFaceCheck(
+      data,
+      countBasket({ photo: data, mediaType: photo.type, items: found.catalogue.map(({ key, name, looks }) => ({ key, name, looks })) }),
+    );
     // Only after the count: a photo with a face is never written anywhere.
     if (count.face) return Response.json({ error: FACE_REFUSAL, refused: "face" }, { status: 422 });
     const path = await savePhoto(`baskets/${standId}/${date}`, data, photo.type).catch((error) => {

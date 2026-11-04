@@ -25,7 +25,10 @@ export type BasketCount = {
   unlisted: { what: string; count: number }[];
   /** Why the photo cannot be counted (blurred, too dark, no basket), if it cannot. */
   problem?: string;
-  /** A person's face is in the photo: it is refused and never kept (eval E6). */
+  /**
+   * A person's face is in the photo, by Gemini's check; withFaceCheck adds Cloud
+   * Vision's. The photo is then refused and never kept (eval E6).
+   */
   face: boolean;
 };
 
