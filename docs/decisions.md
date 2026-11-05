@@ -274,6 +274,19 @@ end to end.
 **In the code:** `src/lib/paypal/disputes.ts`, `src/lib/dispute-flow.ts`,
 `src/components/grower/dispute-actions.tsx`.
 
+## D23. One look, light, on every phone
+
+**5 Nov 2026.** Every page stays light when a phone is in dark mode (`color-scheme: only light`,
+in the CSS and the viewport meta tag), and a wrong link or a failed page gets Strawbank's own
+page in place of Next's.
+
+**Why:** a leftover template rule turned the page near-black in dark mode while the brand's navy
+text stayed navy. Measured on the 15 page types in emulated dark mode, 10 had text under 3:1
+contrast, at worst 1.1:1. A real dark theme would mean a second set of colours to check for a
+small gain, so the app says it has one look.
+
+**How:** after the change, the same emulated test found no text under 3:1 on any page.
+
 ## Related
 
 - [Security](../SECURITY.md)

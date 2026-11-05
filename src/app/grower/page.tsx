@@ -21,16 +21,16 @@ const SIGN_IN_PROBLEMS: Record<string, string> = {
 
 const button = "block w-full rounded-full py-3.5 text-center font-semibold";
 
-/** The grower's pages; one that is not built yet is shown but not linked. */
+/** The grower's pages. */
 const GROWER_PAGES = (standId: string) => [
-  { href: "/grower/morning", label: "Morning set-up", hint: "Photograph the price card and the shelf", ready: true },
-  { href: "/grower/dusk", label: "Dusk report", hint: "What sold and what walked", ready: true },
-  { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you", ready: true },
-  { href: "/grower/ious", label: "IOUs", hint: "Baskets on a PayPal invoice, paid later", ready: true },
-  { href: "/grower/disputes", label: "Disputes", hint: "Answer PayPal with the basket photo and your record", ready: true },
-  { href: "/grower/audit", label: "Next-morning audit", hint: "Does PayPal agree with the ledger?", ready: true },
-  { href: "/grower/ledger", label: "Ledger", hint: "Every payment, refund and PayPal call, in AG Studio", ready: true },
-  { href: `/s/${standId}`, label: "The stand page", hint: "What customers see", ready: true },
+  { href: "/grower/morning", label: "Morning set-up", hint: "Photograph the price card and the shelf" },
+  { href: "/grower/dusk", label: "Dusk report", hint: "What sold and what walked" },
+  { href: "/grower/refunds", label: "Refunds", hint: "Requests waiting for you" },
+  { href: "/grower/ious", label: "IOUs", hint: "Baskets on a PayPal invoice, paid later" },
+  { href: "/grower/disputes", label: "Disputes", hint: "Answer PayPal with the basket photo and your record" },
+  { href: "/grower/audit", label: "Next-morning audit", hint: "Does PayPal agree with the ledger?" },
+  { href: "/grower/ledger", label: "Ledger", hint: "Every payment, refund and PayPal call, in AG Studio" },
+  { href: `/s/${standId}`, label: "The stand page", hint: "What customers see" },
 ];
 
 function DemoButton({ label }: { label: string }) {
@@ -78,19 +78,12 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
           <p className="eyebrow text-straw-ink">Your stand</p>
           <h2 className="display text-xl text-ink">{stand.name}</h2>
           <nav className="mt-4 grid gap-2">
-            {GROWER_PAGES(stand.id).map(({ href, label, hint, ready }) =>
-              ready ? (
-                <Link key={href} href={href} className="rounded-2xl bg-paper px-4 py-3">
-                  <span className="block font-semibold text-ink">{label}</span>
-                  <span className="block text-sm text-ink-3">{hint}</span>
-                </Link>
-              ) : (
-                <div key={href} className="rounded-2xl border border-dashed border-line-2 px-4 py-3">
-                  <span className="block font-semibold text-ink-3">{label}</span>
-                  <span className="block text-sm text-ink-4">{hint} · coming this week</span>
-                </div>
-              ),
-            )}
+            {GROWER_PAGES(stand.id).map(({ href, label, hint }) => (
+              <Link key={href} href={href} className="rounded-2xl bg-paper px-4 py-3">
+                <span className="block font-semibold text-ink">{label}</span>
+                <span className="block text-sm text-ink-3">{hint}</span>
+              </Link>
+            ))}
           </nav>
         </div>
       ) : (

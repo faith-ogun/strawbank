@@ -53,7 +53,7 @@ export function IouForm({ standId, counts, countId }: { standId: string; counts:
         <button type="submit" disabled={sending} className="w-full rounded-full bg-ink py-3 font-semibold text-canvas disabled:opacity-60">
           {sending ? "Asking PayPal…" : "Send me the invoice"}
         </button>
-        <p className="text-xs text-ink-4">Strawbank keeps only the first letter of your address; PayPal holds the rest. Sandbox only, no real money.</p>
+        <p className="text-xs text-ink-4">Strawbank keeps only a shortened form (a…@example.com); PayPal holds the full address. Sandbox only, no real money.</p>
       </form>
     </details>
   );
