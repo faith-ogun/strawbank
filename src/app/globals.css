@@ -64,16 +64,14 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/*
+  One look, light. Every colour above is chosen for a light page, so a phone in
+  dark mode must not darken it: navy text on a dark page cannot be read.
+*/
 :root {
+  color-scheme: only light;
   --background: #fbfaf7;
   --foreground: #1c1b18;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #141412;
-    --foreground: #ecebe6;
-  }
 }
 
 body {
@@ -92,11 +90,10 @@ html {
   }
 }
 
-/* The marketing page sets its own surfaces, light only: it is the brand. */
+/* The marketing page sets its own surfaces: it is the brand. */
 .landing {
   background: var(--color-canvas);
   color: var(--color-ink);
-  color-scheme: light;
 }
 
 .eyebrow {
