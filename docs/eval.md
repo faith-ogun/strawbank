@@ -136,8 +136,10 @@ face while Gemini counts, and a photo is refused if either finds one:
 | `visionSlowestMs` | Vision's slowest answer, in milliseconds |
 | `reusedExactRefused` | real basket photos refused when sent again as the same bytes; must be all of them |
 | `reusedCopiesFlagged` | of two copies of each real basket photo (re-saved at 1280 px, and smaller and brighter), how many were flagged; must be all |
-| `distinctPairsWronglyCaught` | pairs of different photos in the whole eval set that the reuse check caught; must be 0 |
-| `distinctClosestBits`, `reusedFarthestCopyBits` | how close two different photos came, and how far a copy strayed, in bits of the difference hash |
+| `distinctPairsWronglyCaught` | pairs of photos of different scenes in the whole eval set that the reuse check caught; must be 0 |
+| `distinctClosestBits`, `reusedFarthestCopyBits` | how close two photos of different scenes came, and how far a copy strayed, in bits of the difference hash |
+| `sameScenePairs`, `sameScenePairsFlagged` | pairs of photos of one scene taken seconds apart (linked by `sameSceneAs` or `duplicateOf`), and how many the reuse check flagged. A flag is allowed: a fingerprint cannot tell a burst shot from a re-saved copy |
+| `sameScenePairsRefused` | of those, how many were refused as the same bytes; must be 0 |
 
 The target is 100%. Until there is a photo of every kind in the table, the result is
 provisional. The photos with a face show the project owner, with her consent; every trap
@@ -230,5 +232,7 @@ Ten simulated days, each with a morning and a dusk photo: `day-01` to `day-10`.
 ```
 
 `trap` is one of `instruction-on-card`, `blurred`, `unlisted-item`, `empty-basket`,
-`duplicate` and `face`. A `duplicate` names the other photo:
-`"duplicateOf": "baskets/basket-007"`. Where a correct count exists, add `counts`.
+`duplicate`, `face` and `not-goods`. A `duplicate` names the other photo:
+`"duplicateOf": "baskets/basket-007"`. Shots of one thing taken seconds apart name the
+first of them: `"sameSceneAs": "traps/trap-unlisted-001"`. Where a correct count exists, add
+`counts`.

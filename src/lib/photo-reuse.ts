@@ -20,6 +20,8 @@ export type ReuseVerdict =
  * On the eval photos (4 Nov), a re-saved, shrunk or brightened copy was at
  * most 4 bits from its original, and no two different photos were closer than
  * 8. A cropped copy, or one with a screenshot's bars, can be further: up to 12.
+ * Two shots of one lemon taken a second apart (7 Nov) were 4 bits apart, so a
+ * burst shot of the same thing is flagged like a copy, and that is intended.
  */
 export const REUSE_DISTANCE = 5;
 

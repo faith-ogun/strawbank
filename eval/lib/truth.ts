@@ -59,6 +59,12 @@ export const TrapTruth = z
     trap: z.enum(TRAPS),
     /** For "duplicate": the other photo, as "<set>/<id>". */
     duplicateOf: z.string().regex(/^[a-z-]+\/[\w-]+$/).optional(),
+    /**
+     * The first photo of the same scene, as "<set>/<id>", for shots of one thing
+     * taken seconds apart. E6's reuse check may flag such a pair: a fingerprint
+     * cannot tell a burst shot from a re-saved copy (decided 7 Nov).
+     */
+    sameSceneAs: z.string().regex(/^[a-z-]+\/[\w-]+$/).optional(),
     /** What a correct count would be, where one exists. */
     counts: counts.optional(),
     note,
@@ -141,9 +147,11 @@ export function loadTruthSet(root: string, set: SetName, itemKeys: Set<string> |
     ];
     if (used.length > 0 && !itemKeys) errors.push(`${where}: eval/truth/items.json is missing`);
     for (const key of used) if (itemKeys && !itemKeys.has(key)) errors.push(`${where}: "${key}" is not in items.json`);
-    const other = truth.duplicateOf as string | undefined;
-    if (other && !PHOTO_EXTENSIONS.some((ext) => existsSync(join(root, "eval/photos", other + ext)))) {
-      errors.push(`${where}: duplicateOf "${other}" has no photo`);
+    for (const field of ["duplicateOf", "sameSceneAs"] as const) {
+      const other = truth[field] as string | undefined;
+      if (other && !PHOTO_EXTENSIONS.some((ext) => existsSync(join(root, "eval/photos", other + ext)))) {
+        errors.push(`${where}: ${field} "${other}" has no photo`);
+      }
     }
     if (photo) entries.push({ id, truthPath: join(truthDir, file), photoPath: join(photoDir, photo), truth });
   }
