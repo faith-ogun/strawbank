@@ -43,7 +43,9 @@ press **Report a vulnerability**. Please do not open a public issue for it.
   once, in the call that counts it, and Vision once, alongside.
 - **A cropped copy of an old photo can get past the reuse check.** On the eval photos, a copy
   cropped by 3% or with a screenshot's bars was up to 12 bits from its original, as far as
-  two different photos can be, so it is not caught. A fresh photo of a smaller basket is not
+  two different photos can be, so it is not caught. The other way round, two shots of the
+  same basket a second apart can look like a copy and be flagged (eval E6, 7 Nov); a flag
+  only sends a refund on that order to the grower. A fresh photo of a smaller basket is not
   a reused photo at all; the dusk report's count of what walked is what catches that.
 - **If Vision does not answer, Gemini's check alone decides.** Vision has 5 seconds, so the
   customer is never kept waiting on it; a call that fails or runs late is logged.

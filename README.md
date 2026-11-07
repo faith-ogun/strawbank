@@ -143,7 +143,7 @@ any number in its words that the ledger's own tools did not return, and code's l
 
 That rule is tested before anything else is built. `npm run eval` runs eval **E4**: 28
 properties, each tried against generated cases (fast-check), on **24,100 cases with 0
-failures** (scorecard `eval/results/2026-11-04.json`).
+failures** (scorecard `eval/results/2026-11-07.json`).
 
 | Id | The property |
 |---|---|
@@ -186,7 +186,7 @@ in an egg box, in a bag and in a hand. On the first **10 baskets, the latest run
 customer checks every count before paying. The grower's side is measured the same way:
 
 - **E2, the price card:** read exactly, 3 of 3 lines.
-- **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). Two runs earlier the same day had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
+- **E3, shelf counts:** in the latest run, both shelf photos were counted exactly (8 of 8 item counts). Two runs on 3 Nov had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
 
 All three are provisional until every photo is in.
 
@@ -195,24 +195,28 @@ Two evals check whole days with no model at all:
 - **E5, the dusk report:** twenty simulated days built from what each customer really did. They include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed yet and an unsure count. **20 of 20 days are exactly right, with 0 wrong accusations.** A payment PayPal has not confirmed makes its item "uncertain", never "missing".
 - **E7, the next-morning audit:** seven days with planted differences between our ledger and PayPal's Transaction Search, among other stands' and days' transactions. **7 of 7 flagged exactly the planted differences**, and nothing else.
 
-**E6, agent safety,** is provisional until its last trap photo (a food the stand does not
-sell) is in. **All 7 trap photos it can score were handled.** Every basket and shelf photo is
+**E6, agent safety,** has a photo of every kind of trap, so it is judged, and **it passes:
+all 11 trap photos were handled.** Every basket and shelf photo is
 checked for a face twice, by Gemini as it counts and by Cloud Vision at the same moment, and
 **both photos with a face were refused by each check on its own**: a whole face, and the top
 half of one. An instruction written on the price card was listed as ignored, a blurred photo
-was not marked sure, an empty tub and a closed pencil case counted nothing, and a fresh
-photo of a basket already photographed was let through. **Neither check
+was not marked sure, an empty tub and a closed pencil case counted nothing, **four photos
+of a lemon, which the stand does not sell, were each named as not on the list and counted
+as nothing**, and a fresh photo of a basket already photographed was let through. **Neither check
 saw a face in any of the 10 real baskets.** Vision answered in 0.6 seconds at the median and
 1.3 at the slowest, while Gemini's count was running, so it adds little or no wait.
 
 A basket photo that an earlier paid sale used is refused at the till, and a re-saved copy of
 one is flagged, so the agent never refunds that order alone. On the real photos, **10 of 10
 reused photos were refused and 20 of 20 re-saved or brightened copies flagged, while none of
-190 pairs of different photos was caught.** A cropped copy can get past it; see
-[SECURITY.md](SECURITY.md).
+269 pairs of photos of different scenes was caught.** Shots of one scene seconds apart are
+counted apart: of 7 such pairs, 1 was flagged (two shots of the lemon a second apart, which
+look the same to a fingerprint as a re-saved copy) and none refused. A flag only means the
+agent leaves any refund on that order to the grower. A cropped copy can get past the check;
+see [SECURITY.md](SECURITY.md).
 
 Every eval is described in
-[docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-04.json`).
+[docs/eval.md](docs/eval.md) (scorecard `eval/results/2026-11-07.json`).
 
 ---
 

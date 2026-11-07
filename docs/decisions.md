@@ -287,6 +287,22 @@ small gain, so the app says it has one look.
 
 **How:** after the change, the same emulated test found no text under 3:1 on any page.
 
+## D24. Shots of one scene may be flagged by the reuse check
+
+**7 Nov 2026.** In eval E6, photos of the same thing taken seconds apart are linked in their
+truth files (`sameSceneAs`, or a duplicate's `duplicateOf`). The reuse check may flag such a
+pair but must never refuse it. Photos of different scenes must still never be caught.
+
+**Why:** four photos of one lemon, taken within twenty seconds, completed E6's set of traps.
+Two of them, a second apart and framed almost the same, were 4 bits apart: inside the 5-bit
+distance that flags a re-saved copy. A fingerprint cannot tell a burst shot from a copy, and
+the photographer's view was that flagging it is right. A flag only means the agent leaves any
+refund on that order to the grower (D21). Lowering the distance would let re-saved copies,
+up to 4 bits from their original, through unflagged, so it stays at 5.
+
+**How:** on the scorecard of 7 Nov, E6 passes: 1 of 7 same-scene pairs flagged, none refused,
+and none of 269 pairs of different scenes caught (the closest 9 bits apart).
+
 ## Related
 
 - [Security](../SECURITY.md)
