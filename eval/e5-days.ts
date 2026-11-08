@@ -15,6 +15,13 @@ import type { Eval } from "./lib/types";
 // only reported unaccounted for when that many really walked, and a payment
 // PayPal has not confirmed yet makes the item "uncertain", never "missing".
 // The explanation's numbers are checked by E4.5.
+//
+// Beside it, for comparison only (added 8 Nov), a naive tally of the same
+// days: the same sums (taken = morning + restocks - dusk, missing = taken -
+// paid), but only payments PayPal has already confirmed count as paid, and
+// every shelf count is taken at its word, with no "uncertain". It is judged by
+// the same rule as Strawbank's report: reporting more unaccounted for than
+// really walked is a wrong accusation. The comparison never decides pass or fail.
 
 type Counts = Record<string, number>;
 type DayFile = {
@@ -44,6 +51,9 @@ export const e5: Eval = {
     let wrongAccusations = 0;
     let walksCaught = 0;
     let walks = 0;
+    let naiveWrongAccusations = 0;
+    let naiveWrongDays = 0;
+    let naiveWronglyAccusedMinor = 0;
     for (const file of files) {
       const day = JSON.parse(readFileSync(join(dir, file), "utf8")) as DayFile;
       // What the app holds: one order per customer who reached checkout, with PayPal's word on it.
@@ -86,7 +96,21 @@ export const e5: Eval = {
         }
       }
       if (problems.length === 0) exactDays++;
-      cases.push({ day: day.date, scenario: day.scenario, ok: problems.length === 0, problems });
+
+      // The naive tally: confirmed payments only, every shelf count believed.
+      const naive: string[] = [];
+      for (const row of report) {
+        const truth = day.expected[row.key];
+        const naiveGap = row.taken - (paid[row.key] ?? 0);
+        const walked = Math.max(0, truth.netWalked);
+        if (naiveGap > 0 && naiveGap > walked) {
+          naiveWrongAccusations++;
+          naiveWronglyAccusedMinor += (naiveGap - walked) * row.unitMinor;
+          naive.push(`${row.key}: would report ${naiveGap} unaccounted for, ${walked} really walked`);
+        }
+      }
+      if (naive.length > 0) naiveWrongDays++;
+      cases.push({ day: day.date, scenario: day.scenario, ok: problems.length === 0, problems, ...(naive.length > 0 && { naiveTally: naive }) });
     }
 
     const passed = exactDays === files.length && files.length >= 20 && wrongAccusations === 0;
@@ -96,7 +120,7 @@ export const e5: Eval = {
       target: this.target,
       status: passed ? "pass" : "fail",
       ...(!passed && { reason: `${exactDays} of ${files.length} days exactly right; ${wrongAccusations} wrong accusation(s)` }),
-      metrics: { days: files.length, exactDays, items, wrongAccusations, walks, walksCaught },
+      metrics: { days: files.length, exactDays, items, wrongAccusations, walks, walksCaught, naiveWrongAccusations, naiveWrongDays, naiveWronglyAccusedMinor },
       cases,
     };
   },
