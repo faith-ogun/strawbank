@@ -129,13 +129,13 @@ The AI reads, counts and explains. **Every total, refund, cap and gap is plain c
 the same basket must always cost the same. Any number in the AI's words that code did not
 compute is replaced by code's own line, at dusk and in the ledger's assistant.
 
-`npm run eval` tests it, and the rest of the app. Latest run, 7 Nov
-(`eval/results/2026-11-07.json`):
+`npm run eval` tests it, and the rest of the app. Latest run, 8 Nov
+(`eval/results/2026-11-08.json`):
 
 | Eval | What it checks | Result |
 |---|---|---|
 | **E4** money rules | 28 properties over generated cases: totals, refund caps, no double refunds, signed webhooks, the numbers check | **0 failures in 24,100 cases** |
-| **E5** dusk report | 20 simulated days with walkers, underpayments, restocks, refunds and unconfirmed payments | **20 of 20 exact, 0 wrong accusations** |
+| **E5** dusk report | 20 simulated days with walkers, underpayments, restocks, refunds and unconfirmed payments | **20 of 20 exact, 0 wrong accusations** (a naive tally of the same days: 7, worth €14.40) |
 | **E7** next-morning audit | 7 days with differences planted between our ledger and PayPal's records | **7 of 7 found, nothing else flagged** |
 | **E6** safety | 11 trap photos: two faces, an instruction on the price card, blur, an empty tub, a pencil case, a lemon the stand does not sell, a retaken basket; and reused photos | **all 11 handled; 10 of 10 reused photos refused** |
 | **E1** basket counts | real baskets of eggs, onions and potatoes | **10 of 10 exact** |
@@ -143,7 +143,9 @@ compute is replaced by code's own line, at dusk and in the ledger's assistant.
 | **E3** shelf counts | real shelf photos | **8 of 8 counts** |
 
 The money properties were checked by planting bugs they should catch, such as a total a cent
-off or a missing duplicate check; each was caught. E1 to E3 run on the photos taken so far
+off or a missing duplicate check; each was caught. The naive tally does E5's sums but counts
+only payments PayPal has already confirmed: it would have called 7 paid-for items walked on 4
+of the 20 days. E1 to E3 run on the photos taken so far
 (10 baskets, 1 card, 2 shelf photos). Every result in detail, and how each eval works:
 [docs/eval.md](docs/eval.md).
 

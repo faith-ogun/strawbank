@@ -2,7 +2,7 @@
 
 Each claim the README or the app makes, with the code behind it and the eval that tests it.
 CI runs the money, day and audit evals (E4, E5, E7) on every push; the photo evals need
-Gemini credentials, so their numbers come from the scorecard (`eval/results/2026-11-07.json`).
+Gemini credentials, so their numbers come from the scorecard (`eval/results/2026-11-08.json`).
 
 | Claim | Where to check it |
 |---|---|
@@ -12,7 +12,7 @@ Gemini credentials, so their numbers come from the scorecard (`eval/results/2026
 | Refunds never add up to more than was paid, one request never refunds twice, and a refund call with no answer stays pending | `src/lib/refund-store.ts`, `src/agent/tools.ts`; E4.2b, E4.2c, E4.3, E4.6d |
 | Only webhooks PayPal confirms as signed reach the ledger, and each changes it once | `src/app/api/webhooks/paypal/route.ts`, `src/lib/ledger.ts`; E4.4, E4.4b. Each confirmation is listed under "What Strawbank asked PayPal" on the grower's page |
 | Any number in the AI's words that code did not compute is replaced, at dusk and in the ledger's assistant | `src/lib/explain-check.ts`, `src/lib/ai/studio-turn.ts`; E4.5 to E4.5e, E4.8 |
-| The dusk report says "uncertain", never "missing", when a count or a payment is not sure: 20 of 20 simulated days exactly right, nobody wrongly accused | `src/lib/reconcile.ts`, `src/lib/dusk.ts`; E5 |
+| The dusk report says "uncertain", never "missing", when a count or a payment is not sure: 20 of 20 simulated days exactly right, nobody wrongly accused, where a naive tally of the same days would wrongly report 7 items as walked | `src/lib/reconcile.ts`, `src/lib/dusk.ts`; E5 |
 | On the first 10 real basket photos, the latest run counted all 10 exactly; basket 8 is sometimes counted as five eggs where there are four | `eval/e1-baskets.ts`, the photos in `eval/photos/baskets/`, the right answers in `eval/truth/baskets/`; E1 in the scorecard |
 | The next-morning audit flags exactly the differences between our ledger and PayPal's Transaction Search: 7 of 7 | `src/lib/audit.ts`; E7. The grower's "Next-morning audit" page |
 | An IOU is invoiced at exactly what an order for the same basket would charge, and counts as paid only when PayPal says so or the grower records cash | `src/lib/ious.ts`, `src/lib/iou-flow.ts`; E4.10, E4.11 |

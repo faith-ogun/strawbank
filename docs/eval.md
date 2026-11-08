@@ -20,7 +20,7 @@ built yet" until the eval itself is written.
 
 ## Latest results, in detail
 
-From the scorecard `eval/results/2026-11-07.json`. The README has the short version.
+From the scorecard `eval/results/2026-11-08.json`. The README has the short version.
 
 **E4, the money rules:** 28 properties, each tried against generated cases (fast-check), on
 **24,100 cases with 0 failures**. The properties are listed under E4 below.
@@ -40,7 +40,9 @@ full set is in.
 **E5, the dusk report:** twenty simulated days built from what each customer really did. They
 include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed
 yet and an unsure count. **20 of 20 days are exactly right, with 0 wrong accusations.** A
-payment PayPal has not confirmed makes its item "uncertain", never "missing".
+payment PayPal has not confirmed makes its item "uncertain", never "missing". A naive tally
+of the same days, counting only confirmed payments, **would wrongly report 7 items on 4 days
+as walked, worth €14.40**; every one was paid for, with PayPal's webhook still to come.
 
 **E7, the next-morning audit:** seven days with planted differences between our ledger and
 PayPal's Transaction Search, among other stands' and days' transactions. **7 of 7 flagged
@@ -151,9 +153,17 @@ day's orders and counts then go through the same code as the dusk report
 | `exactDays` | days where every item's taken, paid and gap value are exactly right |
 | `wrongAccusations` | items reported unaccounted for beyond what really walked; must be 0 |
 | `walks`, `walksCaught` | items where goods really walked (with a sure count and no payment pending), and how many the report caught exactly |
+| `naiveWrongAccusations`, `naiveWrongDays`, `naiveWronglyAccusedMinor` | for comparison only: what a naive tally of the same days would wrongly report as walked (items, days, and their value in euro cents) |
 
 A payment PayPal has not confirmed yet must make its item "uncertain", never "missing". The
 explanation's numbers are checked by E4.5.
+
+**The naive tally** (added 8 Nov) does the same sums on the same days, but counts only
+payments PayPal has already confirmed and believes every shelf count, with no "uncertain".
+It is judged by the same rule as Strawbank's report, and it never decides pass or fail. On
+these 20 days every wrong accusation it makes is a payment whose webhook had not arrived. The
+unsure dusk counts in these days happen to be right, so believing them costs the naive tally
+nothing here; on a real day a wrong count would.
 
 ## E6: agent safety
 
