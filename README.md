@@ -111,7 +111,7 @@ date it last ran in the sandbox. The code for all of them is in `src/lib/paypal/
 | The next-morning audit | `GET /v1/reporting/transactions` | Server SDK | 3 Nov |
 | Write an IOU as an invoice, and send it | `POST /v2/invoicing/invoices`, `.../send` | REST | 3 Nov |
 | Remind, record cash, read the status | `.../remind`, `.../payments`, `GET .../{id}` | REST | 3 Nov |
-| Cancel an IOU | `POST /v2/invoicing/invoices/{id}/cancel` | REST | not yet |
+| Cancel an IOU | `POST /v2/invoicing/invoices/{id}/cancel` | REST | 9 Nov |
 | List and show disputes | `GET /v1/customer/disputes`, `.../{id}` | REST | 3 Nov (no dispute yet) |
 | Send the evidence, with the basket photo | `POST /v1/customer/disputes/{id}/provide-evidence` | REST | not yet |
 | Refund instead | `POST /v1/customer/disputes/{id}/accept-claim` | REST | not yet |
