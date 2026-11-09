@@ -41,7 +41,10 @@ export function GrowerNav({ standId, refundsWaiting }: { standId: string; refund
       {/* Wider screens: every page along the top. */}
       <nav aria-label="Grower pages" className="sticky top-0 z-30 hidden border-b border-line bg-canvas/95 backdrop-blur md:block">
         <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2 text-sm">
-          <span className="mr-3 font-semibold text-ink">Strawbank · grower</span>
+          <span className="mr-3 flex items-center gap-2">
+            <span className="rounded-full bg-ink px-2.5 py-0.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-white">Grower</span>
+            <span className="font-semibold text-ink">Strawbank</span>
+          </span>
           {[...MAIN, ...MORE].map((p) => (
             <Link
               key={p.href}
@@ -53,18 +56,29 @@ export function GrowerNav({ standId, refundsWaiting }: { standId: string; refund
               {p.href === "/grower/refunds" && <Badge n={refundsWaiting} />}
             </Link>
           ))}
-          <Link href={`/s/${standId}`} className="ml-auto rounded-full border border-line-2 px-3 py-1.5 font-medium text-ink">
-            The stand page
+          <Link href={`/s/${standId}`} className="ml-auto rounded-full border-2 border-straw px-3 py-1.5 font-semibold text-ink hover:bg-straw-soft">
+            Switch to customer →
           </Link>
         </div>
       </nav>
+
+      {/* Phones: who you are, along the top. */}
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-ink px-4 py-2 text-sm text-white md:hidden">
+        <span className="flex items-center gap-2">
+          <span className="rounded-full bg-white px-2.5 py-0.5 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-ink">Grower</span>
+          <span className="hidden text-white/80 min-[400px]:inline">You run the stand</span>
+        </span>
+        <Link href={`/s/${standId}`} className="whitespace-nowrap rounded-full bg-straw px-3 py-1 font-semibold text-ink">
+          Switch to customer →
+        </Link>
+      </div>
 
       {/* Phones: the main pages along the bottom, the rest under More. */}
       <nav aria-label="Grower pages" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas pb-[env(safe-area-inset-bottom)] md:hidden">
         {more && (
           <div className="border-b border-line bg-canvas px-4 pb-3 pt-2">
             <ul className="grid grid-cols-2 gap-2">
-              {[...MORE, { href: `/s/${standId}`, label: "The stand page" }].map((p) => (
+              {MORE.map((p) => (
                 <li key={p.href}>
                   <Link
                     href={p.href}
