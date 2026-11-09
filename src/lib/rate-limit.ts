@@ -34,6 +34,7 @@ export const LIMITS = {
   refundClaim: 10,
   growerPhoto: 30,
   studioTurn: 300,
+  buttonReport: 20,
 } as const;
 
 /** A 429 if this visitor has used up `route`'s limit; otherwise undefined. */
