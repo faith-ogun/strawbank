@@ -14,7 +14,9 @@ import type { Eval } from "./lib/types";
 // exactly as the truth says. Above all, nobody is accused wrongly: an item is
 // only reported unaccounted for when that many really walked, and a payment
 // PayPal has not confirmed yet makes the item "uncertain", never "missing".
-// The explanation's numbers are checked by E4.5.
+// So does a refund claim the grower has not decided (added 9 Nov, after the
+// dry run): if granting it would leave goods unpaid for, the item is
+// "uncertain", never "all paid". The explanation's numbers are checked by E4.5.
 //
 // Beside it, for comparison only (added 8 Nov), a naive tally of the same
 // days: the same sums (taken = morning + restocks - dusk, missing = taken -
@@ -30,10 +32,10 @@ type DayFile = {
   catalogue: CatalogueItem[];
   morning: Counts;
   restocks: Counts[];
-  customers: { took: Counts; declared: Counts; payment: DaySale["payment"]; returned?: Counts; note: string }[];
+  customers: { took: Counts; declared: Counts; payment: DaySale["payment"]; returned?: Counts; claimed?: Counts; note: string }[];
   dusk: Counts;
   duskConfidence: Counts;
-  expected: Record<string, { taken: number; paid: number; pending: number; netWalked: number; gapMinor: number }>;
+  expected: Record<string, { taken: number; paid: number; pending: number; claimed: number; netWalked: number; gapMinor: number }>;
 };
 
 export const e5: Eval = {
@@ -54,6 +56,8 @@ export const e5: Eval = {
     let naiveWrongAccusations = 0;
     let naiveWrongDays = 0;
     let naiveWronglyAccusedMinor = 0;
+    let openClaims = 0;
+    let openClaimsFlagged = 0;
     for (const file of files) {
       const day = JSON.parse(readFileSync(join(dir, file), "utf8")) as DayFile;
       // What the app holds: one order per customer who reached checkout, with PayPal's word on it.
@@ -63,8 +67,9 @@ export const e5: Eval = {
           lines: Object.entries(c.declared).map(([key, quantity]) => ({ key, quantity })),
           payment: c.payment,
           returned: c.returned,
+          claimed: c.claimed,
         }));
-      const { paid, pending } = paidQuantities(sales);
+      const { paid, pending, claimed } = paidQuantities(sales);
       const report = reconcileDay(day.catalogue, {
         morning: day.morning,
         restocks: day.restocks,
@@ -72,6 +77,7 @@ export const e5: Eval = {
         duskConfidence: day.duskConfidence,
         paid,
         pending,
+        claimed,
       });
 
       const problems: string[] = [];
@@ -84,10 +90,18 @@ export const e5: Eval = {
         if (row.gapMinor !== truth.gapMinor) problems.push(`${row.key}: gap worth ${row.gapMinor}, truth ${truth.gapMinor}`);
         if (!sure && !row.uncertain) problems.push(`${row.key}: unsure shelf count not marked uncertain`);
         if (truth.pending > 0 && row.gap > 0 && !row.uncertain) problems.push(`${row.key}: unconfirmed payment reported as missing`);
+        if (row.claimed !== truth.claimed) problems.push(`${row.key}: ${row.claimed} under an open refund claim, truth ${truth.claimed}`);
+        if (truth.claimed > 0 && row.taken > row.paid - truth.claimed && !row.uncertain) {
+          problems.push(`${row.key}: an open refund claim could mean goods walked, but the item is not marked uncertain`);
+        }
         // An accusation must be true: never more unaccounted for than really walked.
         if (!row.uncertain && row.gap > 0 && row.gap > truth.netWalked) {
           wrongAccusations++;
           problems.push(`${row.key}: reported ${row.gap} unaccounted for, ${truth.netWalked} really walked`);
+        }
+        if (truth.claimed > 0 && row.taken > row.paid - truth.claimed) {
+          openClaims++;
+          if (row.uncertain) openClaimsFlagged++;
         }
         if (sure && truth.pending === 0 && truth.netWalked > 0) {
           walks++;
@@ -120,7 +134,7 @@ export const e5: Eval = {
       target: this.target,
       status: passed ? "pass" : "fail",
       ...(!passed && { reason: `${exactDays} of ${files.length} days exactly right; ${wrongAccusations} wrong accusation(s)` }),
-      metrics: { days: files.length, exactDays, items, wrongAccusations, walks, walksCaught, naiveWrongAccusations, naiveWrongDays, naiveWronglyAccusedMinor },
+      metrics: { days: files.length, exactDays, items, wrongAccusations, walks, walksCaught, naiveWrongAccusations, naiveWrongDays, naiveWronglyAccusedMinor, openClaims, openClaimsFlagged },
       cases,
     };
   },

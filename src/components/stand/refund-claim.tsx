@@ -13,7 +13,7 @@ export function RefundClaim({ orderId, lines }: { orderId: string; lines: Line[]
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [took, setTook] = useState<Record<string, number>>(() => Object.fromEntries(lines.map((l) => [l.key, l.quantity])));
-  const [state, setState] = useState<{ busy?: boolean; message?: string; error?: string }>({});
+  const [state, setState] = useState<{ busy?: boolean; message?: string; status?: string; error?: string }>({});
   const changed = lines.some((l) => took[l.key] < l.quantity);
 
   if (!open) {
@@ -36,7 +36,8 @@ export function RefundClaim({ orderId, lines }: { orderId: string; lines: Line[]
     const body = await response.json().catch(() => ({}));
     if (!response.ok) setState({ error: body.error ?? "the claim could not be sent" });
     else {
-      setState({ message: body.message });
+      // The receipt reloads with the claim's message above, and this card goes; until then, it shows here.
+      setState({ message: body.message, status: body.status });
       router.refresh();
     }
   };
@@ -64,7 +65,7 @@ export function RefundClaim({ orderId, lines }: { orderId: string; lines: Line[]
       </ul>
       {state.error && <p className="mt-4 rounded-2xl bg-gap-soft px-4 py-3 text-sm text-ink">{state.error}</p>}
       {state.message ? (
-        <p className="mt-4 rounded-2xl bg-mint-soft px-4 py-3 text-sm text-ink">{state.message}</p>
+        <p className={`mt-4 rounded-2xl px-4 py-3 text-sm text-ink ${state.status === "COMPLETED" ? "bg-mint-soft" : "bg-straw-soft"}`}>{state.message}</p>
       ) : (
         <button type="button" disabled={!changed || state.busy} onClick={send} className="mt-4 block w-full rounded-full bg-ink py-3.5 text-center font-semibold text-canvas disabled:opacity-40">
           {state.busy ? "Checking your basket photo…" : "Send"}

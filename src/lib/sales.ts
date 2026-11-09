@@ -38,6 +38,8 @@ export type Sale = {
   /** From the basket count: its photo's fingerprint, and a paid sale it looks like a copy of. */
   photoPrint?: PhotoPrint;
   photoLooksLike?: { orderId: string; distance: number };
+  /** When the order was created (ISO), read back from Firestore's server time. */
+  createdAt?: string;
 };
 
 const baskets = () => firestore().collection("baskets");
@@ -74,5 +76,8 @@ export async function paidSalePrints(standId: string): Promise<PrintedSale[]> {
 
 export async function daySales(standId: string, date: string): Promise<Sale[]> {
   const snap = await orders().where("standId", "==", standId).where("date", "==", date).get();
-  return snap.docs.map((d) => d.data() as Sale);
+  return snap.docs.map((d) => {
+    const created = d.get("createdAt") as { toDate?: () => Date } | undefined;
+    return { ...(d.data() as Sale), createdAt: created?.toDate?.().toISOString() };
+  });
 }

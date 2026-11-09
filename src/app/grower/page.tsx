@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { findStand } from "@/lib/demo-stand";
+import { type DayRecord, dayState, readDay } from "@/lib/days";
+import { requestsForStand } from "@/lib/refund-store";
 import { currentGrower } from "@/lib/session";
 import { PayPalCalls } from "@/components/paypal-calls";
 import { callsForStand } from "@/lib/paypal/calls";
@@ -32,6 +34,70 @@ const GROWER_PAGES = (standId: string) => [
   { href: "/grower/ledger", label: "Ledger", hint: "Every payment, refund and PayPal call, in AG Studio" },
   { href: `/s/${standId}`, label: "The stand page", hint: "What customers see" },
 ];
+
+const clock = (iso?: string) =>
+  iso ? new Intl.DateTimeFormat("en-IE", { timeStyle: "short", timeZone: "Europe/Dublin" }).format(new Date(iso)) : undefined;
+
+/** Where today stands, and the one thing to do next (9 Nov: the dry run found no "what now"). */
+async function TodayCard({ standId }: { standId: string }) {
+  const [day, requests] = await Promise.all([readDay(standId).catch((): DayRecord => ({})), requestsForStand(standId).catch(() => [])]);
+  const state = dayState(day);
+  const waiting = requests.filter((r) => r.status === "WAITING").length;
+  const since = clock(day.morning?.openedAt);
+  const primary = "block rounded-full bg-ink py-3.5 text-center font-semibold text-canvas";
+  const secondary = "block rounded-full border border-line-2 py-3 text-center font-semibold text-ink";
+  return (
+    <section className="mt-6 rounded-3xl border border-line bg-canvas p-5 shadow-card">
+      <p className="eyebrow text-straw-ink">Today</p>
+      {state === "not-set-up" && (
+        <>
+          <h2 className="display text-xl text-ink">The stand is not set up yet</h2>
+          <p className="mt-2 text-ink-2">Photograph today&apos;s price card and the stocked stand. Customers can pay once it is open.</p>
+          <div className="mt-4 grid gap-2">
+            <Link href="/grower/morning" className={primary}>
+              Set up the stand
+            </Link>
+          </div>
+        </>
+      )}
+      {state === "open" && (
+        <>
+          <h2 className="display text-xl text-ink">The stand is open</h2>
+          <p className="mt-2 text-ink-2">
+            Open{since ? ` since ${since}` : ""}. Customers pay on the stand page. At the end of the day, photograph what is left and close the stand.
+          </p>
+          <div className="mt-4 grid gap-2">
+            <Link href="/grower/dusk" className={primary}>
+              Close the day: dusk report
+            </Link>
+            <Link href={`/s/${standId}`} className={secondary}>
+              See the stand page, as a customer
+            </Link>
+          </div>
+        </>
+      )}
+      {state === "closed" && (
+        <>
+          <h2 className="display text-xl text-ink">The stand is closed</h2>
+          <p className="mt-2 text-ink-2">The dusk report is ready. Tomorrow morning, the audit checks PayPal&apos;s own records agree with it.</p>
+          <div className="mt-4 grid gap-2">
+            <Link href="/grower/dusk" className={primary}>
+              See the dusk report
+            </Link>
+            <Link href="/grower/morning?new=1" className={secondary}>
+              Start a new day
+            </Link>
+          </div>
+        </>
+      )}
+      {waiting > 0 && (
+        <Link href="/grower/refunds" className="mt-3 block rounded-2xl bg-straw-soft px-4 py-3 text-sm font-semibold text-ink">
+          {waiting === 1 ? "1 refund claim is" : `${waiting} refund claims are`} waiting for you →
+        </Link>
+      )}
+    </section>
+  );
+}
 
 function DemoButton({ label }: { label: string }) {
   return (
@@ -74,8 +140,10 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
         {grower.growerId !== "demo" && " with PayPal"}.
       </p>
       {stand ? (
-        <div className="mt-6 rounded-3xl border border-line bg-canvas p-5 shadow-card">
-          <p className="eyebrow text-straw-ink">Your stand</p>
+        <>
+        <TodayCard standId={stand.id} />
+        <div className="mt-6 rounded-3xl border border-line bg-canvas p-5">
+          <p className="eyebrow text-straw-ink">Every page</p>
           <h2 className="display text-xl text-ink">{stand.name}</h2>
           <nav className="mt-4 grid gap-2">
             {GROWER_PAGES(stand.id).map(({ href, label, hint }) => (
@@ -86,6 +154,7 @@ async function Front({ searchParams }: { searchParams: PageProps<"/grower">["sea
             ))}
           </nav>
         </div>
+        </>
       ) : (
         <div className="mt-6 space-y-3">
           <p className="leading-relaxed text-ink-2">

@@ -116,7 +116,7 @@ export function MorningSetup({ standId, standing, currencySymbol }: { standId: s
             See the stand page
           </Link>
           <Link href="/grower" className="rounded-full border border-line-2 py-3 text-center font-semibold text-ink">
-            Back to your stand
+            Back to today
           </Link>
         </div>
       </section>

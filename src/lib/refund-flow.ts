@@ -140,12 +140,19 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
     // If the recount fails (the photo is gone, or Gemini does not answer), the claim waits for the grower.
     try {
       const { data, contentType } = await readPhoto(basket.photo);
-      const count = await countBasket({
-        photo: data,
-        mediaType: contentType,
-        items: catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })),
-        speed: "careful",
-        thinking: "low",
+      const recountOn = (speed: "careful" | "fast") =>
+        countBasket({
+          photo: data,
+          mediaType: contentType,
+          items: catalogue.map(({ key, name }) => ({ key, name, looks: looks.get(key) })),
+          speed,
+          thinking: "low",
+        });
+      // The careful model first; if it is too busy or does not answer, the fast
+      // one, which counts every basket at the till (9 Nov: a 429 sent a claim to the grower).
+      const count = await recountOn("careful").catch((error: unknown) => {
+        console.error(`recount for ${orderId} on the careful model failed, trying the fast one:`, error instanceof Error ? error.message : error);
+        return recountOn("fast");
       });
       recount = count.counts;
       const disputed = sale.lines.filter((l) => claimed[l.key] < l.quantity);
@@ -165,7 +172,9 @@ export async function claimRefund(orderId: string, claimedInput: Record<string, 
     limitMinor: found.stand.refundLimitMinor,
     photoLooksReused: Boolean(sale.photoLooksLike),
   });
-  const reasons = decision.route === "agent" ? [] : decision.reasons;
+  // With no recount at all, "uncertain" only repeats that it did not happen (9 Nov: the customer read both).
+  const noRecount = !basket || recountFailed;
+  const reasons = decision.route === "agent" ? [] : decision.reasons.filter((r) => !(noRecount && r === "the recount is uncertain"));
   if (!basket && decision.route !== "none") reasons.unshift("no basket photo to recount");
   if (recountFailed && decision.route !== "none") reasons.unshift("the recount did not work");
 

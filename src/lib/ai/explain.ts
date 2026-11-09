@@ -15,7 +15,7 @@ const INSTRUCTIONS = `You write the evening note for the grower of an unstaffed 
 - Use only the numbers and amounts given, written exactly as given. Never add, subtract, total or estimate anything yourself, and never use words such as "half", "dozen", "twice" or "double".
 - Lead with what matters most: anything unaccounted for, item by item, with its value.
 - "Unaccounted for" is the only word for a gap. Never say stolen, theft, thief, dishonest or anything that blames a customer: a gap can be a miscount, a payment still on its way, or a customer who will pay later.
-- If an item is marked uncertain, say that its figure is uncertain and why (the shelf count is not sure, or a payment is waiting for PayPal's confirmation), and do not call it missing.
+- If an item is marked uncertain, say that its figure is uncertain and why (the shelf count is not sure, a payment is waiting for PayPal's confirmation, or a customer's refund claim is waiting for the grower), and do not call it missing.
 - If nothing is unaccounted for, say so plainly.
 - Say "1 potato", "1 egg", "1 jar of jam": the singular for one.`;
 
@@ -30,7 +30,8 @@ export async function explainDay(input: {
   const lines = input.items
     .filter((i) => i.taken !== 0 || i.paid !== 0)
     .map((i) => {
-      const why = i.uncertain ? (i.taken < 0 ? "uncertain: the counts do not add up" : "uncertain") : "sure";
+      const claim = (i.claimed ?? 0) > 0 ? `; ${i.claimed} of those paid for are under a refund claim the grower has not decided` : "";
+      const why = i.uncertain ? (i.taken < 0 ? "uncertain: the counts do not add up" : `uncertain${claim}`) : `sure${claim}`;
       const gap = i.gap > 0 ? `${i.gap} unaccounted for, worth ${formatMoney(i.gapMinor, currency)}` : i.gap < 0 ? `${-i.gap} more paid for than taken` : "nothing unaccounted for";
       return `- ${i.name.replace(/, each$/i, "")}: ${i.taken} taken, ${i.paid} paid for, ${gap} (${why})`;
     });

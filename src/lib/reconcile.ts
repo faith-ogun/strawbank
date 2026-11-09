@@ -19,6 +19,8 @@ export type ItemReconciliation = {
   paid: number;
   /** taken - paid. Positive: unaccounted for. Negative: more paid for than taken. */
   gap: number;
+  /** Paid-for quantities a customer says they did not take, in a refund claim the grower has not decided. */
+  claimed: number;
   /** Value of the unaccounted items, or 0 when the gap is not positive. */
   gapMinor: number;
   uncertain: boolean;
@@ -34,6 +36,8 @@ export type DayCounts = {
   paid: Record<string, number>;
   /** Per item key, quantities in payments PayPal has not yet confirmed by signed webhook. */
   pending?: Record<string, number>;
+  /** Per item key, confirmed paid-for quantities under a refund claim nobody has decided yet. */
+  claimed?: Record<string, number>;
 };
 
 /**
@@ -49,21 +53,28 @@ export type DaySale = {
   payment: Payment;
   /** Per item key, quantities refunded through Strawbank (the customer did not take them). */
   returned?: Record<string, number>;
+  /** Per item key, quantities in a refund claim not decided yet: still paid for, but maybe not taken. */
+  claimed?: Record<string, number>;
 };
 
 /** The day's orders -> quantities paid for, and quantities still waiting for PayPal's word. */
-export function paidQuantities(sales: DaySale[]): { paid: Record<string, number>; pending: Record<string, number> } {
+export function paidQuantities(sales: DaySale[]): { paid: Record<string, number>; pending: Record<string, number>; claimed: Record<string, number> } {
   const paid: Record<string, number> = {};
   const pending: Record<string, number> = {};
+  const claimed: Record<string, number> = {};
   for (const sale of sales) {
     if (sale.payment === "unpaid") continue;
     const into = sale.payment === "confirmed" ? paid : pending;
     for (const line of sale.lines) {
       const kept = Math.max(0, line.quantity - (sale.returned?.[line.key] ?? 0));
       into[line.key] = (into[line.key] ?? 0) + kept;
+      if (sale.payment === "confirmed") {
+        const open = Math.min(kept, sale.claimed?.[line.key] ?? 0);
+        if (open > 0) claimed[line.key] = (claimed[line.key] ?? 0) + open;
+      }
     }
   }
-  return { paid, pending };
+  return { paid, pending, claimed };
 }
 
 export function reconcileDay(catalogue: CatalogueItem[], counts: DayCounts): ItemReconciliation[] {
@@ -74,9 +85,13 @@ export function reconcileDay(catalogue: CatalogueItem[], counts: DayCounts): Ite
     const taken = morning + restocked - dusk;
     const paid = counts.paid[item.key] ?? 0;
     const gap = taken - paid;
+    const claimed = counts.claimed?.[item.key] ?? 0;
     // A payment PayPal has not confirmed yet may cover the gap: never call that missing.
     const awaiting = gap > 0 && (counts.pending?.[item.key] ?? 0) > 0;
-    const uncertain = taken < 0 || awaiting || (counts.duskConfidence[item.key] ?? 0) < MIN_SHELF_CONFIDENCE;
+    // A refund claim nobody has decided may mean fewer were taken than paid for:
+    // if granting it would leave goods unpaid for, the item is not settled (9 Nov).
+    const disputed = claimed > 0 && taken > paid - claimed;
+    const uncertain = taken < 0 || awaiting || disputed || (counts.duskConfidence[item.key] ?? 0) < MIN_SHELF_CONFIDENCE;
     return {
       key: item.key,
       name: item.name,
@@ -87,6 +102,7 @@ export function reconcileDay(catalogue: CatalogueItem[], counts: DayCounts): Ite
       taken,
       paid,
       gap,
+      claimed,
       gapMinor: gap > 0 ? multiplyMinor(item.unitMinor, gap) : 0,
       uncertain,
     };
@@ -103,7 +119,7 @@ export function allowedNumbers(items: ItemReconciliation[], extra: number[] = []
   const values = new Set<number>(extra.map(Math.abs));
   let totalGapMinor = 0;
   for (const item of items) {
-    for (const n of [item.morning, item.restocked, item.dusk, item.taken, item.paid, item.gap]) values.add(Math.abs(n));
+    for (const n of [item.morning, item.restocked, item.dusk, item.taken, item.paid, item.gap, item.claimed ?? 0]) values.add(Math.abs(n));
     values.add(item.unitMinor / 100);
     values.add(item.gapMinor / 100);
     totalGapMinor += item.gapMinor;
@@ -120,6 +136,9 @@ export function templateExplanation(items: ItemReconciliation[], currency: Curre
   const sentences = items
     .filter((item) => item.taken !== 0 || item.paid !== 0)
     .map((item) => {
+      if (item.uncertain && (item.claimed ?? 0) > 0 && item.taken > item.paid - item.claimed) {
+        return `${item.name}: ${item.taken} taken, ${item.paid} paid for, ${item.claimed} of them under a refund claim you have not decided, so nothing is reported missing yet.`;
+      }
       if (item.uncertain) return `${item.name}: the count is uncertain, so nothing is reported missing.`;
       const base = `${item.name}: ${item.taken} taken, ${item.paid} paid for`;
       if (item.gap > 0) return `${base}, ${item.gap} unaccounted for (${formatMoney(item.gapMinor, currency)}).`;

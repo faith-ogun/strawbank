@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { MorningSetup } from "@/components/grower/morning-setup";
-import { standToday } from "@/lib/days";
+import { dayState, readDay, standToday } from "@/lib/days";
 import { toDecimal } from "@/lib/money";
 import { currentGrower } from "@/lib/session";
 
@@ -15,28 +15,65 @@ export const metadata: Metadata = { title: "Strawbank · morning set-up" };
 
 const SYMBOLS: Record<string, string> = { EUR: "€", GBP: "£", USD: "$" };
 
-async function Setup() {
+const clock = (iso?: string) =>
+  iso ? new Intl.DateTimeFormat("en-IE", { timeStyle: "short", timeZone: "Europe/Dublin" }).format(new Date(iso)) : undefined;
+
+async function Setup({ searchParams }: { searchParams: PageProps<"/grower/morning">["searchParams"] }) {
   const grower = await currentGrower();
   if (!grower?.standId) redirect("/grower");
   const today = await standToday(grower.standId);
   if (!today) redirect("/grower");
+  const state = dayState(await readDay(today.stand.id));
+  const setup = (
+    <MorningSetup
+      standId={today.stand.id}
+      currencySymbol={SYMBOLS[today.stand.currency] ?? today.stand.currency}
+      standing={today.catalogue.map(({ key, name, unitMinor }) => ({ key, name, price: toDecimal(unitMinor) }))}
+    />
+  );
+  if (state === "not-set-up") return setup;
+
+  // Already open or closed today: say so first, so nobody resets the day by accident (9 Nov).
+  const since = clock(today.morning?.openedAt);
+  const asked = (await searchParams).new === "1";
   return (
     <>
-      {today.morning && (
-        <p className="mt-4 rounded-2xl bg-mint-soft px-4 py-3 text-sm text-ink">
-          The stand is already open today. Setting it up again replaces this morning&apos;s prices and count.
+      <section className="mt-6 rounded-3xl border border-line bg-canvas p-5 shadow-card">
+        <h2 className="display text-xl text-ink">{state === "open" ? "The stand is open" : "Today's stand is closed"}</h2>
+        <p className="mt-2 text-ink-2">
+          {state === "open"
+            ? `Open${since ? ` since ${since}` : ""}, with this morning's prices and count. Customers pay on the stand page.`
+            : "The dusk report is done. To run the stand again, start a new day."}
         </p>
-      )}
-      <MorningSetup
-        standId={today.stand.id}
-        currencySymbol={SYMBOLS[today.stand.currency] ?? today.stand.currency}
-        standing={today.catalogue.map(({ key, name, unitMinor }) => ({ key, name, price: toDecimal(unitMinor) }))}
-      />
+        <div className="mt-4 grid gap-2">
+          {state === "open" ? (
+            <Link href={`/s/${today.stand.id}`} className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
+              See the stand page
+            </Link>
+          ) : (
+            <Link href="/grower/dusk" className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
+              See the dusk report
+            </Link>
+          )}
+          <Link href="/grower" className="rounded-full border border-line-2 py-3 text-center font-semibold text-ink">
+            Back to today
+          </Link>
+        </div>
+      </section>
+      <details className="group mt-6" open={asked}>
+        <summary className="block cursor-pointer list-none rounded-full border border-line-2 bg-canvas py-3 text-center font-semibold text-ink group-open:hidden">
+          {state === "open" ? "Set up the stand again" : "Start a new day"}
+        </summary>
+        <p className="rounded-2xl bg-straw-soft px-4 py-3 text-sm text-ink">
+          A new day starts from a new count of the shelf and a new price card. The dusk report then counts only the sales and IOUs made after it; earlier ones stay in the ledger.
+        </p>
+        {setup}
+      </details>
     </>
   );
 }
 
-export default function MorningPage() {
+export default function MorningPage({ searchParams }: PageProps<"/grower/morning">) {
   return (
     <div className="mx-auto w-full max-w-[480px] px-4 pb-16 pt-6">
       <header className="flex items-center gap-3">
@@ -50,7 +87,7 @@ export default function MorningPage() {
       </header>
       <p className="mt-4 text-ink-2">Photograph the price card, then the stocked stand. Check what the AI read and correct anything wrong.</p>
       <Suspense fallback={<p className="mt-6 text-ink-3">Opening…</p>}>
-        <Setup />
+        <Setup searchParams={searchParams} />
       </Suspense>
     </div>
   );

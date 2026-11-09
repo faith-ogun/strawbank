@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Dusk } from "@/lib/days";
 import { type Currency, formatMoney } from "@/lib/money";
 
@@ -23,6 +24,7 @@ export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency 
   const confirmed = dusk.payments.filter((p) => p.payment === "confirmed");
   const pending = dusk.payments.filter((p) => p.payment === "pending");
   const unpaid = dusk.payments.filter((p) => p.payment === "unpaid");
+  const claims = dusk.items.some((i) => (i.claimed ?? 0) > 0);
   return (
     <section className="mt-6 space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -57,6 +59,9 @@ export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency 
                     {row.morning}
                     {row.restocked > 0 ? ` + ${row.restocked}` : ""} this morning, {row.dusk} left
                   </span>
+                  {(row.claimed ?? 0) > 0 && (
+                    <span className="block text-xs font-normal text-straw-ink">{row.claimed} under a refund claim you have not decided</span>
+                  )}
                 </td>
                 <td className="py-2.5 text-right font-mono text-ink">{row.taken}</td>
                 <td className="py-2.5 text-right font-mono text-ink">{row.paid}</td>
@@ -75,6 +80,15 @@ export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency 
             ))}
           </tbody>
         </table>
+        {claims && (
+          <p className="mt-3 rounded-2xl bg-straw-soft px-4 py-3 text-sm text-ink">
+            A refund claim is waiting for you. Until you decide it, its item is marked uncertain: if the customer is right, goods were taken that nobody paid for.{" "}
+            <a href="/grower/refunds" className="font-semibold underline underline-offset-4">
+              Decide it under Refunds
+            </a>
+            , then close the stand again.
+          </p>
+        )}
         <div className="mt-4 rounded-2xl bg-paper p-4 text-[0.9375rem] leading-relaxed text-ink">{dusk.explanation.text}</div>
         <p className="mt-3 font-mono text-[0.6875rem] leading-relaxed text-ink-3">
           {dusk.explanation.source === "model"
@@ -108,6 +122,21 @@ export function DuskReport({ dusk, currency }: { dusk: Dusk; currency: Currency 
             Items in a payment still waiting for PayPal are marked uncertain, never missing. Close the stand again later to update.
           </p>
         )}
+      </div>
+
+      <div className="rounded-[22px] border border-line bg-canvas p-4">
+        <p className="eyebrow text-ink-3">What next</p>
+        <p className="mt-1 text-sm text-ink-2">
+          Tomorrow morning, the audit checks PayPal&apos;s own records agree with this report. To run the stand again now, start a new day: it begins from a new count of the shelf.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Link href="/grower/morning?new=1" className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
+            Start a new day
+          </Link>
+          <Link href="/grower" className="rounded-full border border-line-2 py-3 text-center font-semibold text-ink">
+            Back to today
+          </Link>
+        </div>
       </div>
     </section>
   );

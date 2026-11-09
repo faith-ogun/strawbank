@@ -6,7 +6,7 @@
 
 import type { DocumentReference } from "@google-cloud/firestore";
 import { explainDay } from "./ai/explain";
-import { type Dusk, type PaymentSummary, readDay, saveDusk } from "./days";
+import { type Dusk, type PaymentSummary, inThisOpening, readDay, saveDusk } from "./days";
 import { explanationToShow } from "./explain-check";
 import { firestore, whereIn } from "./firestore";
 import { iousForDay } from "./iou-flow";
@@ -20,11 +20,15 @@ import { type Sale, daySales } from "./sales";
 /** A refund made through Strawbank (F4), with the quantities the customer did not take. */
 export type RefundRequestRecord = { orderId: string; status: string; items?: Record<string, number> };
 
-/** Each of the day's orders and IOUs, with PayPal's word on whether it was paid. */
-export async function paymentsForDay(standId: string, date: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
-  const [orders, ious] = await Promise.all([ordersForDay(standId, date), iousForDay(standId, date)]);
+/**
+ * Each of the day's orders and IOUs, with PayPal's word on whether it was paid.
+ * With `openedAt`, only those made since the stand last opened: setting it up
+ * again starts the day afresh from a new count (9 Nov).
+ */
+export async function paymentsForDay(standId: string, date: string, openedAt?: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
+  const [orders, ious] = await Promise.all([ordersForDay(standId, date, openedAt), iousForDay(standId, date)]);
   // An IOU is a payment on its way until PayPal says it was paid (or the grower recorded cash).
-  for (const iou of ious) {
+  for (const iou of ious.filter((i) => inThisOpening(i.createdAt, openedAt))) {
     const payment = iouPayment(iou.status);
     orders.payments.push({ orderId: iou.invoiceId, totalMinor: iou.totalMinor, payment, source: iou.paidBy === "cash" ? "cash" : "invoice", refundedMinor: 0 });
     orders.daySales.push({ lines: iou.lines, payment });
@@ -32,8 +36,8 @@ export async function paymentsForDay(standId: string, date: string): Promise<{ s
   return orders;
 }
 
-async function ordersForDay(standId: string, date: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
-  const sales = await daySales(standId, date);
+async function ordersForDay(standId: string, date: string, openedAt?: string): Promise<{ sales: Sale[]; payments: PaymentSummary[]; daySales: DaySale[] }> {
+  const sales = (await daySales(standId, date)).filter((s) => inThisOpening(s.createdAt, openedAt));
   if (sales.length === 0) return { sales, payments: [], daySales: [] };
   const store = firestore();
 
@@ -78,11 +82,15 @@ async function ordersForDay(standId: string, date: string): Promise<{ sales: Sal
       .filter((r) => r.captureId === captureId && r.status === "COMPLETED")
       .reduce((sum, r) => addMinor(sum, r.amountMinor), 0);
     const returned: Record<string, number> = {};
-    for (const request of requests.filter((r) => r.orderId === sale.orderId && r.status === "COMPLETED")) {
-      for (const [key, n] of Object.entries(request.items ?? {})) returned[key] = (returned[key] ?? 0) + n;
+    const claimed: Record<string, number> = {};
+    for (const request of requests.filter((r) => r.orderId === sale.orderId)) {
+      // Refunded: the customer did not take these. Waiting for the grower, or
+      // sent to PayPal and not yet done: still paid for, but maybe not taken.
+      const into = request.status === "COMPLETED" ? returned : request.status === "WAITING" || request.status === "PENDING" ? claimed : undefined;
+      for (const [key, n] of Object.entries(into ? (request.items ?? {}) : {})) into![key] = (into![key] ?? 0) + n;
     }
     payments.push({ orderId: sale.orderId, captureId, totalMinor: sale.totalMinor, payment, source, refundedMinor });
-    forDay.push({ lines: sale.lines, payment, returned });
+    forDay.push({ lines: sale.lines, payment, returned, claimed });
   }
   return { sales, payments, daySales: forDay };
 }
@@ -108,8 +116,8 @@ export async function closeDay(input: {
     confidence[item.key] = ai !== undefined && ai === input.counts[item.key] ? (reading?.confidence[item.key] ?? 0) : 1;
   }
 
-  const { payments, daySales: forDay } = await paymentsForDay(input.standId, input.date);
-  const { paid, pending } = paidQuantities(forDay);
+  const { payments, daySales: forDay } = await paymentsForDay(input.standId, input.date, day.morning.openedAt);
+  const { paid, pending, claimed } = paidQuantities(forDay);
   const items = reconcileDay(input.catalogue, {
     morning: day.morning.counts,
     restocks: day.restocks ?? [],
@@ -117,6 +125,7 @@ export async function closeDay(input: {
     duskConfidence: confidence,
     paid,
     pending,
+    claimed,
   });
 
   const confirmed = payments.filter((p) => p.payment === "confirmed");

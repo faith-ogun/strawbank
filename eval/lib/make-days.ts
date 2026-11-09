@@ -18,6 +18,8 @@ type Customer = {
   payment: "confirmed" | "pending" | "unpaid";
   /** Quantities refunded through Strawbank because they were charged for more than they took. */
   returned?: Counts;
+  /** Quantities in a refund claim the grower has not decided yet (added 9 Nov). */
+  claimed?: Counts;
   note: string;
 };
 
@@ -70,11 +72,11 @@ const SCENARIOS: string[][] = [
   ["walker", "restock"],
   ["underpay", "refund"],
   ["pending", "walker"],
-  ["overpay"],
+  ["overpay", "claim"],
   ["refund", "pending"],
   ["denied", "restock"],
   ["unsure", "walker"],
-  [],
+  ["claim-walked"],
   ["walker", "walker"],
   ["restock", "refund", "pending"],
   ["underpay", "denied", "unsure"],
@@ -105,6 +107,23 @@ function makeDay(index: number, scenario: string[]) {
     }
     if (event === "unsure") {
       honest("paid in full");
+      continue;
+    }
+    // An open refund claim (added 9 Nov, after the dry run): fixed quantities and
+    // no random numbers, so every other day's file stays exactly as it was.
+    if (event === "claim" || event === "claim-walked") {
+      stock.potato -= 1;
+      customers.push({
+        took: { potato: 1 },
+        declared: { potato: 2 },
+        payment: "confirmed",
+        claimed: { potato: 1 },
+        note: "charged for 2 potatoes, took 1, and claimed a refund the grower has not decided yet",
+      });
+      if (event === "claim-walked") {
+        stock.potato -= 1;
+        customers.push({ took: { potato: 1 }, declared: {}, payment: "unpaid", note: "took a potato and paid nothing" });
+      }
       continue;
     }
     const took = basket(stock);
@@ -145,15 +164,17 @@ function makeDay(index: number, scenario: string[]) {
       let paid = 0;
       let pending = 0;
       let paidFor = 0;
+      let claimed = 0;
       for (const c of customers) {
         taken += c.took[key] ?? 0;
         const kept = Math.max(0, (c.declared[key] ?? 0) - (c.returned?.[key] ?? 0));
         if (c.payment === "confirmed") paid += kept;
         if (c.payment === "pending") pending += kept;
         if (c.payment !== "unpaid") paidFor += kept;
+        if (c.payment === "confirmed") claimed += c.claimed?.[key] ?? 0;
       }
       const netWalked = taken - paidFor;
-      return [key, { taken, paid, pending, netWalked, gapMinor: Math.max(0, taken - paid) * unitMinor }];
+      return [key, { taken, paid, pending, claimed, netWalked, gapMinor: Math.max(0, taken - paid) * unitMinor }];
     }),
   );
 

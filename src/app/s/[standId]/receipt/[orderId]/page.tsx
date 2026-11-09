@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { findStand } from "@/lib/demo-stand";
 import { formatMoney, fromPayPalAmount } from "@/lib/money";
@@ -23,11 +24,20 @@ export const metadata: Metadata = { title: "Strawbank · your receipt" };
 
 const ORDER_ID = /^[A-Z0-9]{8,40}$/;
 
+/** Green when refunded, amber while it waits for the grower or PayPal, plain otherwise. */
+const CLAIM_COLOUR: Record<string, string> = {
+  COMPLETED: "bg-mint-soft",
+  PENDING: "bg-straw-soft",
+  WAITING: "bg-straw-soft",
+  FAILED: "bg-gap-soft",
+};
+
 const time = (iso?: string) =>
   iso ? new Intl.DateTimeFormat("en-IE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Dublin" }).format(new Date(iso)) : "";
 
 async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[orderId]">["params"] }) {
   const { standId, orderId } = await params;
+  await connection(); // the receipt is PayPal's live record, never prerendered (9 Nov: Date.now() during prerender)
   const found = findStand(standId);
   if (!found || !ORDER_ID.test(orderId)) notFound();
   const { currency } = found.stand;
@@ -99,11 +109,12 @@ async function Receipt({ params }: { params: PageProps<"/s/[standId]/receipt/[or
       </div>
 
       {claims.map((claim) => (
-        <p key={claim.requestId} className={`mt-4 rounded-2xl px-4 py-3 text-sm text-ink ${claim.status === "COMPLETED" ? "bg-mint-soft" : "bg-paper"}`}>
+        <p key={claim.requestId} className={`mt-4 rounded-2xl px-4 py-3 text-sm text-ink ${CLAIM_COLOUR[claim.status] ?? "bg-paper"}`}>
           {requestMessage(claim)}
         </p>
       ))}
-      {paid && sale?.standId === standId && (
+      {/* One claim per receipt: once made, its message above is the only one shown (9 Nov: it showed twice). */}
+      {paid && sale?.standId === standId && claims.length === 0 && (
         <RefundClaim orderId={orderId} lines={sale.lines.map(({ key, name, quantity }) => ({ key, name, quantity }))} />
       )}
 

@@ -121,6 +121,7 @@
       "taken": 9,
       "paid": 9,
       "pending": 0,
+      "claimed": 0,
       "netWalked": 0,
       "gapMinor": 0
     },
@@ -128,6 +129,7 @@
       "taken": 8,
       "paid": 8,
       "pending": 0,
+      "claimed": 0,
       "netWalked": 0,
       "gapMinor": 0
     },
@@ -135,6 +137,7 @@
       "taken": 19,
       "paid": 19,
       "pending": 0,
+      "claimed": 0,
       "netWalked": 0,
       "gapMinor": 0
     },
@@ -142,6 +145,7 @@
       "taken": 4,
       "paid": 4,
       "pending": 0,
+      "claimed": 0,
       "netWalked": 0,
       "gapMinor": 0
     }
