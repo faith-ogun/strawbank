@@ -20,7 +20,7 @@ built yet" until the eval itself is written.
 
 ## Latest results, in detail
 
-From the scorecard `eval/results/2026-11-08.json`. The README has the short version.
+From the scorecard `eval/results/2026-11-09.json`. The README has the short version.
 
 **E4, the money rules:** 28 properties, each tried against generated cases (fast-check), on
 **24,100 cases with 0 failures**. The properties are listed under E4 below.
@@ -40,7 +40,8 @@ full set is in.
 **E5, the dusk report:** twenty simulated days built from what each customer really did. They
 include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed
 yet and an unsure count. **20 of 20 days are exactly right, with 0 wrong accusations.** A
-payment PayPal has not confirmed makes its item "uncertain", never "missing". A naive tally
+payment PayPal has not confirmed, or a refund claim the grower has not decided, makes its item
+"uncertain", never "missing". A naive tally
 of the same days, counting only confirmed payments, **would wrongly report 7 items on 4 days
 as walked, worth €14.40**; every one was paid for, with PayPal's webhook still to come.
 
@@ -154,9 +155,12 @@ day's orders and counts then go through the same code as the dusk report
 | `wrongAccusations` | items reported unaccounted for beyond what really walked; must be 0 |
 | `walks`, `walksCaught` | items where goods really walked (with a sure count and no payment pending), and how many the report caught exactly |
 | `naiveWrongAccusations`, `naiveWrongDays`, `naiveWronglyAccusedMinor` | for comparison only: what a naive tally of the same days would wrongly report as walked (items, days, and their value in euro cents) |
+| `openClaims`, `openClaimsFlagged` | items where a refund claim the grower has not decided could hide goods that walked, and how many the report marked uncertain; they must match |
 
-A payment PayPal has not confirmed yet must make its item "uncertain", never "missing". The
-explanation's numbers are checked by E4.5.
+A payment PayPal has not confirmed yet must make its item "uncertain", never "missing". So
+must a refund claim the grower has not decided, when granting it would leave goods unpaid for
+(added 9 Nov, after a dry run where it hid a potato that walked: days 13 and 17 carry such a
+claim, day 17 with a walker on the same item). The explanation's numbers are checked by E4.5.
 
 **The naive tally** (added 8 Nov) does the same sums on the same days, but counts only
 payments PayPal has already confirmed and believes every shelf count, with no "uncertain".

@@ -303,6 +303,29 @@ up to 4 bits from their original, through unflagged, so it stays at 5.
 **How:** on the scorecard of 7 Nov, E6 passes: 1 of 7 same-scene pairs flagged, none refused,
 and none of 269 pairs of different scenes caught (the closest 9 bits apart).
 
+## D25. What a dry run on a real phone changed (9 Nov)
+
+**Decision:** a refund claim the grower has not decided makes its item uncertain at dusk;
+setting the stand up again starts a new day; every grower page carries navigation.
+
+**Why:** on 9 Nov the whole paid path was run on a real phone. The customer paid for 2
+potatoes, took 1, and claimed 1 back; the claim waited for the grower. Another potato left
+on an IOU that was then cancelled. The dusk report said "2 taken, 2 paid": the overcharged
+potato hid the one that walked. A claim nobody has decided means the paid count may be too
+high, so when granting it would leave goods unpaid for, the item is now "uncertain", with a
+note pointing to Refunds. The same run found no way between grower pages but the browser's
+back button, and no way to start again after closing the day.
+
+**How:**
+- E5 first: two of the twenty days gained an open claim, one with a walker on the same item,
+  using no random numbers so the other days stay as they were. The old code failed it.
+- The morning set-up records when the stand opened; the dusk report counts only the sales
+  and IOUs made after it. Setting up again clears the day's dusk count and restocks.
+- A bar along the bottom of a phone (Today, Morning, Dusk, Refunds, More) and along the top
+  of a wider screen. The grower's front page says where the day is and what to do next.
+- When Vertex answers "too busy" (429), the next try waits 1.5 s, and the refund recount
+  falls back to the fast model.
+
 ## Related
 
 - [Security](../SECURITY.md)
