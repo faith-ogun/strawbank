@@ -36,40 +36,43 @@ async function Setup({ searchParams }: { searchParams: PageProps<"/grower/mornin
   // Already open or closed today: say so first, so nobody resets the day by accident (9 Nov).
   const since = clock(today.morning?.openedAt);
   const asked = (await searchParams).new === "1";
+  // The day's state shows until the grower opens the set-up; then only the set-up
+  // shows, so its own "The stand is open" is never under an old "closed" (9 Nov).
+  // The details come first in the page so the card can follow its open state.
   return (
-    <>
-      <section className="mt-6 rounded-3xl border border-line bg-canvas p-5 shadow-card">
-        <h2 className="display text-xl text-ink">{state === "open" ? "The stand is open" : "Today's stand is closed"}</h2>
-        <p className="mt-2 text-ink-2">
-          {state === "open"
-            ? `Open${since ? ` since ${since}` : ""}, with this morning's prices and count. Customers pay on the stand page.`
-            : "The dusk report is done. To run the stand again, start a new day."}
-        </p>
-        <div className="mt-4 grid gap-2">
-          {state === "open" ? (
-            <Link href={`/s/${today.stand.id}`} className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
-              See the stand page
+    <div className="flex flex-col">
+        <details className="peer group order-2 mt-6" open={asked}>
+          <summary className="block cursor-pointer list-none rounded-full border border-line-2 bg-canvas py-3 text-center font-semibold text-ink group-open:hidden">
+            {state === "open" ? "Set up the stand again" : "Start a new day"}
+          </summary>
+          <p className="rounded-2xl bg-straw-soft px-4 py-3 text-sm text-ink">
+            A new day starts from a new count of the shelf and a new price card. The dusk report then counts only the sales and IOUs made after it; earlier ones stay in the ledger.
+          </p>
+          {setup}
+        </details>
+        <section className="order-1 mt-6 rounded-3xl border border-line bg-canvas p-5 shadow-card peer-open:hidden">
+          <h2 className="display text-xl text-ink">{state === "open" ? "The stand is open" : "Today's stand is closed"}</h2>
+          <p className="mt-2 text-ink-2">
+            {state === "open"
+              ? `Open${since ? ` since ${since}` : ""}, with this morning's prices and count. Customers pay on the stand page.`
+              : "The dusk report is done. To run the stand again, start a new day."}
+          </p>
+          <div className="mt-4 grid gap-2">
+            {state === "open" ? (
+              <Link href={`/s/${today.stand.id}`} className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
+                See the stand page
+              </Link>
+            ) : (
+              <Link href="/grower/dusk" className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
+                See the dusk report
+              </Link>
+            )}
+            <Link href="/grower" className="rounded-full border border-line-2 py-3 text-center font-semibold text-ink">
+              Back to today
             </Link>
-          ) : (
-            <Link href="/grower/dusk" className="rounded-full bg-ink py-3 text-center font-semibold text-canvas">
-              See the dusk report
-            </Link>
-          )}
-          <Link href="/grower" className="rounded-full border border-line-2 py-3 text-center font-semibold text-ink">
-            Back to today
-          </Link>
-        </div>
-      </section>
-      <details className="group mt-6" open={asked}>
-        <summary className="block cursor-pointer list-none rounded-full border border-line-2 bg-canvas py-3 text-center font-semibold text-ink group-open:hidden">
-          {state === "open" ? "Set up the stand again" : "Start a new day"}
-        </summary>
-        <p className="rounded-2xl bg-straw-soft px-4 py-3 text-sm text-ink">
-          A new day starts from a new count of the shelf and a new price card. The dusk report then counts only the sales and IOUs made after it; earlier ones stay in the ledger.
-        </p>
-        {setup}
-      </details>
-    </>
+          </div>
+        </section>
+    </div>
   );
 }
 
