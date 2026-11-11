@@ -49,6 +49,7 @@ export async function searchTransactions(from: Date, to: Date): Promise<PayPalTr
         currency: info.transactionAmount.currencyCode,
         status: info.transactionStatus,
         customField: info.customField,
+        eventCode: info.transactionEventCode,
       });
     }
     if (!result.totalPages || page >= result.totalPages) break;

@@ -22,6 +22,8 @@ export type PayPalTransaction = {
   status?: string;
   /** Orders v2 custom_id: "<standId>/<YYYY-MM-DD>" on Strawbank's own orders. */
   customField?: string;
+  /** PayPal's transaction event code, for example T0006 (a payment), T1107 (a refund), T1110 (a hold for a dispute). */
+  eventCode?: string;
 };
 
 export type AuditDifference = {
@@ -38,6 +40,13 @@ export type AuditResult = {
   refunds: number;
   differences: AuditDifference[];
 };
+
+/**
+ * PayPal holding money while a dispute is looked into (T1110), and letting it go (T1111). Money
+ * moves, but nothing was sold or refunded, so the audit leaves them out (11 Nov: a real dispute's
+ * hold was reported as "a refund the ledger never heard of").
+ */
+const DISPUTE_HOLDS = new Set(["T1110", "T1111"]);
 
 const minor = (t: PayPalTransaction, currency: Currency) => Math.abs(toMinor(t.amount.replace(/^-/, ""))) * (t.currency === currency ? 1 : NaN);
 
@@ -57,11 +66,12 @@ export function auditDay(input: {
 }): AuditResult {
   const tag = `${input.standId}/${input.date}`;
   const differences: AuditDifference[] = [];
+  const transactions = input.transactions.filter((t) => !(t.eventCode && DISPUTE_HOLDS.has(t.eventCode)));
 
   const ourCaptures = new Map(input.captures.map((c) => [c.captureId, c]));
-  const paypalPayments = input.transactions.filter((t) => t.customField === tag && !t.amount.startsWith("-"));
+  const paypalPayments = transactions.filter((t) => t.customField === tag && !t.amount.startsWith("-"));
   const paymentIds = new Set([...ourCaptures.keys(), ...paypalPayments.map((t) => t.transactionId)]);
-  const paypalRefunds = input.transactions.filter((t) => t.amount.startsWith("-") && t.referenceId && paymentIds.has(t.referenceId));
+  const paypalRefunds = transactions.filter((t) => t.amount.startsWith("-") && t.referenceId && paymentIds.has(t.referenceId));
   const ourRefunds = new Map(input.refunds.filter((r) => r.captureId && paymentIds.has(r.captureId)).map((r) => [r.refundId, r]));
 
   for (const t of paypalPayments) {

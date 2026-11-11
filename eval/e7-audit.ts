@@ -26,7 +26,9 @@ const cap = (captureId: string, amountMinor: number, status: LedgerCapture["stat
 });
 const ref = (refundId: string, captureId: string, amountMinor: number): LedgerRefund => ({ refundId, captureId, amountMinor, currency: "EUR", status: "COMPLETED" });
 const pay = (id: string, amount: string, customField = TAG): PayPalTransaction => ({ transactionId: id, referenceId: `O-${id}`, amount, currency: "EUR", status: "S", customField });
-const back = (id: string, captureId: string, amount: string): PayPalTransaction => ({ transactionId: id, referenceId: captureId, amount: `-${amount}`, currency: "EUR", status: "S" });
+const back = (id: string, captureId: string, amount: string): PayPalTransaction => ({ transactionId: id, referenceId: captureId, amount: `-${amount}`, currency: "EUR", status: "S", eventCode: "T1107" });
+/** PayPal holding money while a dispute is looked into (T1110), as on 9 Nov's real dispute: money out, but not a refund. */
+const hold = (id: string, captureId: string, amount: string): PayPalTransaction => ({ transactionId: id, referenceId: captureId, amount: `-${amount}`, currency: "EUR", status: "P", eventCode: "T1110" });
 
 /** Things in PayPal's reply that belong to someone else, on every scenario. */
 const NOISE: PayPalTransaction[] = [
@@ -43,10 +45,10 @@ const base = { captures: [cap("C1", 120), cap("C2", 450), cap("C3", 90)], paypal
 const SCENARIOS: Scenario[] = [
   { name: "everything agrees", captures: base.captures, refunds: [], transactions: [...base.paypal, ...NOISE], expect: [] },
   {
-    name: "agrees, with a refund made through Strawbank",
+    name: "agrees, with a refund made through Strawbank, and PayPal holding money for a dispute on another payment",
     captures: base.captures,
     refunds: [ref("R1", "C2", 450)],
-    transactions: [...base.paypal, back("R1", "C2", "4.50"), ...NOISE],
+    transactions: [...base.paypal, back("R1", "C2", "4.50"), hold("H1", "C1", "1.20"), ...NOISE],
     expect: [],
   },
   {
