@@ -2,7 +2,7 @@
 
 Each claim the README or the app makes, with the code behind it and the eval that tests it.
 CI runs the money, day and audit evals (E4, E5, E7) on every push; the photo evals need
-Gemini credentials, so their numbers come from the scorecard (`eval/results/2026-11-09.json`).
+Gemini credentials, so their numbers come from the scorecard (`eval/results/2026-11-11.json`).
 
 | Claim | Where to check it |
 |---|---|

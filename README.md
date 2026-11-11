@@ -113,7 +113,7 @@ date it last ran in the sandbox. The code for all of them is in `src/lib/paypal/
 | Remind, record cash, read the status | `.../remind`, `.../payments`, `GET .../{id}` | REST | 3 Nov |
 | Cancel an IOU | `POST /v2/invoicing/invoices/{id}/cancel` | REST | 9 Nov |
 | List and show disputes | `GET /v1/customer/disputes`, `.../{id}` | REST | 3 Nov (no dispute yet) |
-| Send the evidence, with the basket photo | `POST /v1/customer/disputes/{id}/provide-evidence` | REST | not yet |
+| Send the evidence, with the basket photo | `POST /v1/customer/disputes/{id}/provide-evidence` | REST | 11 Nov |
 | Refund instead | `POST /v1/customer/disputes/{id}/accept-claim` | REST | not yet |
 | Grower sign-in | `/connect`, `POST /v1/oauth2/token`, `GET /v1/identity/oauth2/userinfo` | REST | 5 Nov |
 
@@ -129,8 +129,8 @@ The AI reads, counts and explains. **Every total, refund, cap and gap is plain c
 the same basket must always cost the same. Any number in the AI's words that code did not
 compute is replaced by code's own line, at dusk and in the ledger's assistant.
 
-`npm run eval` tests it, and the rest of the app. Latest run, 9 Nov
-(`eval/results/2026-11-09.json`):
+`npm run eval` tests it, and the rest of the app. Latest run, 11 Nov
+(`eval/results/2026-11-11.json`):
 
 | Eval | What it checks | Result |
 |---|---|---|
@@ -145,8 +145,8 @@ compute is replaced by code's own line, at dusk and in the ledger's assistant.
 The money properties were checked by planting bugs they should catch, such as a total a cent
 off or a missing duplicate check; each was caught. The naive tally does E5's sums but counts
 only payments PayPal has already confirmed: it would have called 7 paid-for items walked on 4
-of the 20 days. E1 to E3 run on the photos taken so far
-(10 baskets, 1 card, 2 shelf photos). Every result in detail, and how each eval works:
+of the 20 days. E1 to E3 run on real photos:
+10 baskets, 1 price card and 2 shelf photos. Every result in detail, and how each eval works:
 [docs/eval.md](docs/eval.md).
 
 ---

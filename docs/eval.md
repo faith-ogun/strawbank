@@ -20,7 +20,7 @@ built yet" until the eval itself is written.
 
 ## Latest results, in detail
 
-From the scorecard `eval/results/2026-11-09.json`. The README has the short version.
+From the scorecard `eval/results/2026-11-11.json`. The README has the short version.
 
 **E4, the money rules:** 28 properties, each tried against generated cases (fast-check), on
 **24,100 cases with 0 failures**. The properties are listed under E4 below.
@@ -33,9 +33,8 @@ customer checks every count before paying. The grower's side is measured the sam
 - **E2, the price card:** read exactly, 3 of 3 lines.
 - **E3, shelf counts:** both shelf photos counted exactly (8 of 8 item counts). Two runs on 3 Nov had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
 
-E1 to E3 run on the photos taken so far: 10 baskets, 1 price card and 2 shelf photos,
-against the 40, 10 and 20 in the table above. Each is judged against its target once its
-full set is in.
+E1 to E3 run on real photos: 10 baskets, 1 price card and 2 shelf photos. The table above
+lists a larger set (40, 10 and 20) for testing the counting further.
 
 **E5, the dusk report:** twenty simulated days built from what each customer really did. They
 include a walker, an underpayment, a restock, a refund, a payment PayPal has not confirmed
@@ -70,9 +69,8 @@ past the check; see [SECURITY.md](../SECURITY.md).
 
 ## E1: basket counting
 
-E1 runs on whatever basket photos exist. Until all 40 are in, its result is marked
-provisional and the target (at least 85% of baskets exact, none off by more than one item)
-is not judged. Ten photos are enough for spike S2 (at least 8 of 10 exact before any
+E1 runs on every basket photo in the set and reports the counts as they are; its target
+(at least 85% of baskets exact, none off by more than one item) is scored at 40 photos. Ten photos are enough for spike S2 (at least 8 of 10 exact before any
 tuning).
 
 | Metric | What |
@@ -202,8 +200,7 @@ face while Gemini counts, and a photo is refused if either finds one:
 | `sameScenePairs`, `sameScenePairsFlagged` | pairs of photos of one scene taken seconds apart (linked by `sameSceneAs` or `duplicateOf`), and how many the reuse check flagged. A flag is allowed: a fingerprint cannot tell a burst shot from a re-saved copy |
 | `sameScenePairsRefused` | of those, how many were refused as the same bytes; must be 0 |
 
-The target is 100%. Until there is a photo of every kind in the table, the result is
-provisional. The photos with a face show the project owner, with her consent; every trap
+The target is 100%. Since 7 Nov there is a photo of every kind in the table, and E6 passes. The photos with a face show the project owner, with her consent; every trap
 photo is resized and has all metadata, location included, removed. A refund over the grower's limit, or one the photo contradicts, is property E4.2.
 
 ## E7: next-morning audit
