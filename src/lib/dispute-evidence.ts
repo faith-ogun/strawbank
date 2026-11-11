@@ -55,10 +55,15 @@ export function evidenceNotes(pack: EvidencePack): string {
   return text.length <= NOTES_MAX ? text : `${text.slice(0, NOTES_MAX - 1)}…`;
 }
 
-/** The evidence type to send: the one PayPal asked the seller for, or a description of the purchase. */
+/**
+ * The evidence type to send: one PayPal asked the seller for, because PayPal refuses any other
+ * (11 Nov, the first real sandbox dispute: EVIDENCE_TYPE_IS_NOT_ALLOWED). Proof of fulfilment is
+ * sent as the stand's notes and the basket photo, never with a tracking number: the goods were
+ * collected at the stand, and PayPal takes that type with notes or a document. Refund or return
+ * proof is never claimed. With nothing asked for, a description of the purchase.
+ */
 export function evidenceType(requested: string[]): string {
-  const preferred = ["PROOF_OF_INSTORE_RECEIPT", "DETAILS_OF_PURCHASE", "RECEIPT_OF_MERCHANDISE", "OTHER"];
-  // Types that need tracking numbers or refund ids are never claimed: the stand has neither to give.
-  const usable = requested.filter((t) => !["PROOF_OF_FULFILLMENT", "PROOF_OF_REFUND", "PROOF_OF_RETURN"].includes(t));
+  const preferred = ["PROOF_OF_INSTORE_RECEIPT", "PROOF_OF_FULFILLMENT", "DETAILS_OF_PURCHASE", "RECEIPT_OF_MERCHANDISE", "OTHER"];
+  const usable = requested.filter((t) => !["PROOF_OF_REFUND", "PROOF_OF_RETURN"].includes(t));
   return preferred.find((t) => usable.includes(t)) ?? usable[0] ?? "DETAILS_OF_PURCHASE";
 }

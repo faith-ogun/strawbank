@@ -59,12 +59,18 @@ const notesStateTheRecord = fc.property(packCase, ({ catalogue, quantities, curr
 
 const TYPES = ["PROOF_OF_FULFILLMENT", "PROOF_OF_REFUND", "PROOF_OF_RETURN", "PROOF_OF_INSTORE_RECEIPT", "DETAILS_OF_PURCHASE", "RECEIPT_OF_MERCHANDISE", "ITEM_DESCRIPTION", "OTHER"];
 
-const neverClaimsTracking = fc.property(fc.subarray(TYPES), (requested) => {
+// Rewritten 11 Nov: the first real sandbox dispute (PP-R-NET-10197614) asked the seller for
+// PROOF_OF_FULFILLMENT, and PayPal refused anything else (EVIDENCE_TYPE_IS_NOT_ALLOWED). PayPal
+// takes that type with "tracking info, or notes, or a document", so the stand answers with its
+// notes and the basket photo, and never a tracking number. Refund or return proof is never claimed.
+const askedForAndHonest = fc.property(fc.subarray(TYPES), (requested) => {
   const type = evidenceType(requested);
-  assert(!["PROOF_OF_FULFILLMENT", "PROOF_OF_REFUND", "PROOF_OF_RETURN"].includes(type), `would send ${type}, which needs a tracking number or refund id`);
+  assert(!["PROOF_OF_REFUND", "PROOF_OF_RETURN"].includes(type), `would send ${type}, which claims a refund or return the stand did not make`);
+  const usable = requested.filter((t) => !["PROOF_OF_REFUND", "PROOF_OF_RETURN"].includes(t));
+  if (usable.length > 0) assert(usable.includes(type), `PayPal asked for ${usable.join(", ")} but the stand would send ${type}`);
 });
 
 export const p11 = [
   moneyProperty("E4.13", "Dispute evidence states the stand's own record exactly: the amount captured, each line, any refund, and only what really happened", notesStateTheRecord),
-  moneyProperty("E4.13b", "Dispute evidence never claims a type that needs a tracking number or refund id", neverClaimsTracking),
+  moneyProperty("E4.13b", "Dispute evidence is a type PayPal asked for, never a refund or return the stand did not make", askedForAndHonest),
 ];
