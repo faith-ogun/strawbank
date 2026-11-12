@@ -326,6 +326,22 @@ back button, and no way to start again after closing the day.
 - When Vertex answers "too busy" (429), the next try waits 1.5 s, and the refund recount
   falls back to the fast model.
 
+## D26. A saved photo is accepted; a grower can still refund after answering a dispute (12 Nov)
+
+**Decision:** the photo buttons no longer force the camera, and the Disputes page keeps
+"Refund instead" after the evidence is sent, for as long as PayPal offers it.
+
+**Why:** forcing the camera did not stop a customer photographing less than they took, and
+it kept a grower from using a photo already taken. The defence against an old photo is on
+the server, where the customer cannot change it: the fingerprint check (E4.14, E4.2d). On
+the dispute of 9 Nov, after the stand's evidence, PayPal still offered `accept_claim` with
+the type `REFUND`, but the page had hidden both buttons once the evidence was sent.
+
+**How:**
+- The three file inputs drop `capture`, so a phone offers the camera or a saved photo.
+- Once evidence is sent, the page shows when, and a single "Refund instead" button while
+  the dispute's links include `accept_claim`; accept-claim names the type `REFUND`.
+
 ## Related
 
 - [Security](../SECURITY.md)
