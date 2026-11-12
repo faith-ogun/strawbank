@@ -20,7 +20,7 @@ built yet" until the eval itself is written.
 
 ## Latest results, in detail
 
-From the scorecard `eval/results/2026-11-11.json`. The README has the short version.
+From the scorecard `eval/results/2026-11-12.json`. The README has the short version.
 
 **E4, the money rules:** 28 properties, each tried against generated cases (fast-check), on
 **24,100 cases with 0 failures**. The properties are listed under E4 below.
@@ -30,8 +30,9 @@ box, in a bag and in a hand. On the first **10 baskets, the latest run counted a
 exactly**. Basket 8 is the hard one: some runs see five eggs where there are four. The
 customer checks every count before paying. The grower's side is measured the same way:
 
-- **E2, the price card:** read exactly, 3 of 3 lines.
-- **E3, shelf counts:** both shelf photos counted exactly (8 of 8 item counts). Two runs on 3 Nov had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 12 seconds and a third at 30. A grower whose count still times out can count by hand.
+- **E2, the price card:** read exactly, 3 of 3 lines, in 1.4 seconds.
+- **E3, shelf counts:** both shelf photos counted exactly (8 of 8 item counts), in under 3 seconds each. Two runs on 3 Nov had one photo time out after 75 seconds, because a Gemini call stalled; a second try now starts at 8 seconds and a third at 16. A grower whose count still times out can count by hand.
+- **Both on the fast model since 12 Nov** (D27): the same results as on the careful model the day before, in about a third of the time.
 
 E1 to E3 run on real photos: 10 baskets, 1 price card and 2 shelf photos. The table above
 lists a larger set (40, 10 and 20) for testing the counting further.

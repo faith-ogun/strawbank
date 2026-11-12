@@ -129,8 +129,8 @@ The AI reads, counts and explains. **Every total, refund, cap and gap is plain c
 the same basket must always cost the same. Any number in the AI's words that code did not
 compute is replaced by code's own line, at dusk and in the ledger's assistant.
 
-`npm run eval` tests it, and the rest of the app. Latest run, 11 Nov
-(`eval/results/2026-11-11.json`):
+`npm run eval` tests it, and the rest of the app. Latest run, 12 Nov
+(`eval/results/2026-11-12.json`):
 
 | Eval | What it checks | Result |
 |---|---|---|

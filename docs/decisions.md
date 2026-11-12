@@ -342,6 +342,23 @@ the type `REFUND`, but the page had hidden both buttons once the evidence was se
 - Once evidence is sent, the page shows when, and a single "Refund instead" button while
   the dispute's links include `accept_claim`; accept-claim names the type `REFUND`.
 
+## D27. The price card and the shelf counts use the fast model (12 Nov)
+
+**Decision:** the grower's price card and both shelf counts (morning and dusk) run on the
+fast model (`GEMINI_FAST_MODEL`), like the basket count. The refund recount, the dusk
+explanation and the ledger assistant stay on the careful model.
+
+**Why:** on a live morning on 12 Nov the careful model took 20 to 27 seconds to read a price
+card and 15 to count a shelf, waiting on stalled calls. On the eval's own photos the fast
+model read the card exactly in 1.4 seconds and counted both shelves exactly in under 3
+(scorecard `eval/results/2026-11-12.json`: E2 3 of 3 lines, E3 8 of 8 counts, the same as
+the careful model the day before). The grower checks every line before the stand opens,
+and a dusk count can be redone.
+
+**How:** `CARD_SPEED` is `fast` in `src/lib/ai/price-card.ts`, and `countShelf` asks for
+`fast` in `src/lib/ai/count.ts`, still in high detail with medium thinking. Second tries
+start sooner: the card at 5 and 10 seconds, the shelf at 8 and 16.
+
 ## Related
 
 - [Security](../SECURITY.md)
