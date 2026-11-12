@@ -122,12 +122,13 @@ const MEDIA_RESOLUTION = {
 const HEDGE_AFTER_MS = 4_000;
 const CALL_TIMEOUT_MS = 15_000;
 /**
- * A shelf photo goes to the careful model in high detail; nobody is waiting at
- * a till. A normal answer takes 5 to 9 seconds, but on 3 Nov a call stalled
- * until its timeout in 2 of 4 eval runs, on either photo, so the second try
- * starts at 12 seconds and a third at 30. Worst case about 75 seconds, as before.
+ * A shelf photo goes to the fast model in high detail with medium thinking (the
+ * careful model until 12 Nov, when it took 15 seconds on a live morning while the
+ * fast one counted both eval shelves exactly in about 3). On 3 Nov a call stalled
+ * until its timeout in 2 of 4 eval runs, so the second try starts at 8 seconds
+ * and a third at 16. Worst case about 60 seconds.
  */
-const SHELF_TRIES_AT_MS = [0, 12_000, 30_000];
+const SHELF_TRIES_AT_MS = [0, 8_000, 16_000];
 const SHELF_TIMEOUT_MS = 45_000;
 
 /** A note is a short warning to check one item, so a note caps that item below sure. */
@@ -186,11 +187,12 @@ export async function countBasket(input: {
 }
 
 /**
- * F1 step 2 and F3 step 1: the grower's shelf photo. Nobody is waiting at a
- * till, so it uses the careful model and more detail; eval E3 measures it.
+ * F1 step 2 and F3 step 1: the grower's shelf photo, in more detail and with more
+ * thinking than a basket. The fast model since 12 Nov (see SHELF_TRIES_AT_MS);
+ * eval E3 measures it.
  */
 export function countShelf(input: { photo: Uint8Array; mediaType: string; items: CountableItem[] }): Promise<BasketCount> {
-  return countBasket({ ...input, scene: "shelf", speed: "careful", thinking: "medium", detail: "high" });
+  return countBasket({ ...input, scene: "shelf", speed: "fast", thinking: "medium", detail: "high" });
 }
 
 /** What the model may send back; parsed against today's keys before readReply sees it. */
