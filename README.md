@@ -112,9 +112,9 @@ date it last ran in the sandbox. The code for all of them is in `src/lib/paypal/
 | Write an IOU as an invoice, and send it | `POST /v2/invoicing/invoices`, `.../send` | REST | 3 Nov |
 | Remind, record cash, read the status | `.../remind`, `.../payments`, `GET .../{id}` | REST | 3 Nov |
 | Cancel an IOU | `POST /v2/invoicing/invoices/{id}/cancel` | REST | 9 Nov |
-| List and show disputes | `GET /v1/customer/disputes`, `.../{id}` | REST | 3 Nov (no dispute yet) |
+| List and show disputes | `GET /v1/customer/disputes`, `.../{id}` | REST | 11 Nov |
 | Send the evidence, with the basket photo | `POST /v1/customer/disputes/{id}/provide-evidence` | REST | 11 Nov |
-| Refund instead | `POST /v1/customer/disputes/{id}/accept-claim` | REST | not yet |
+| Refund instead | `POST /v1/customer/disputes/{id}/accept-claim` | REST | 12 Nov |
 | Grower sign-in | `/connect`, `POST /v1/oauth2/token`, `GET /v1/identity/oauth2/userinfo` | REST | 5 Nov |
 
 PayPal's webhooks feed the ledger: payments, refunds and reversals, orders, invoices paid or
