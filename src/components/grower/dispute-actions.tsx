@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-// The grower's two answers to a dispute. PayPal does each one.
-export function DisputeActions({ disputeId, canSend, canRefund, amount }: { disputeId: string; canSend: boolean; canRefund: boolean; amount: string }) {
+// The grower's two answers to a dispute. PayPal does each one. Once the
+// evidence is sent, the grower can still settle while PayPal offers it.
+export function DisputeActions({ disputeId, canSend, canRefund, amount, evidenceSent = false }: { disputeId: string; canSend: boolean; canRefund: boolean; amount: string; evidenceSent?: boolean }) {
   const router = useRouter();
   const [state, setState] = useState<{ busy?: boolean; error?: string; done?: string }>({});
   const act = async (action: "evidence" | "refund") => {
@@ -17,15 +18,17 @@ export function DisputeActions({ disputeId, canSend, canRefund, amount }: { disp
   };
   return (
     <div className="mt-3">
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <button type="button" disabled={state.busy || !canSend} onClick={() => act("evidence")} className="rounded-full bg-ink py-2.5 font-semibold text-canvas disabled:opacity-40">
-          Send this to PayPal
-        </button>
+      <div className={`grid gap-2 text-sm ${evidenceSent ? "grid-cols-1" : "grid-cols-2"}`}>
+        {!evidenceSent && (
+          <button type="button" disabled={state.busy || !canSend} onClick={() => act("evidence")} className="rounded-full bg-ink py-2.5 font-semibold text-canvas disabled:opacity-40">
+            Send this to PayPal
+          </button>
+        )}
         <button type="button" disabled={state.busy || !canRefund} onClick={() => act("refund")} className="rounded-full border border-line-2 py-2.5 font-semibold text-ink disabled:opacity-40">
           Refund {amount} instead
         </button>
       </div>
-      {!canSend && <p className="mt-2 text-xs text-ink-3">PayPal is not asking for evidence on this one right now.</p>}
+      {!canSend && !evidenceSent && <p className="mt-2 text-xs text-ink-3">PayPal is not asking for evidence on this one right now.</p>}
       {state.done && <p className="mt-2 text-sm text-mint-ink">{state.done}</p>}
       {state.error && <p className="mt-2 text-sm text-gap">{state.error}</p>}
     </div>

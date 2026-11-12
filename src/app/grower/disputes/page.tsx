@@ -67,10 +67,17 @@ async function List() {
               )}
               <p className="text-sm leading-relaxed text-ink-2">{evidenceNotes(pack)}</p>
             </div>
-            {evidenceSentAt ? (
+            {evidenceSentAt && (
               <p className="mt-3 text-sm text-mint-ink">Evidence sent to PayPal on {new Intl.DateTimeFormat("en-IE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Dublin" }).format(new Date(evidenceSentAt))}.</p>
-            ) : (
-              <DisputeActions disputeId={dispute.dispute_id} canSend={canDo(dispute, "provide_evidence")} canRefund={canDo(dispute, "accept_claim")} amount={amount} />
+            )}
+            {(!evidenceSentAt || canDo(dispute, "accept_claim")) && (
+              <DisputeActions
+                disputeId={dispute.dispute_id}
+                canSend={canDo(dispute, "provide_evidence")}
+                canRefund={canDo(dispute, "accept_claim")}
+                amount={amount}
+                evidenceSent={Boolean(evidenceSentAt)}
+              />
             )}
             {(offersSandboxStep(dispute, "require-evidence") || offersSandboxStep(dispute, "adjudicate")) && (
               <SandboxDisputeSteps

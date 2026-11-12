@@ -58,7 +58,6 @@ export function DuskClose({ items, currency, again }: { items: Item[]; currency:
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,image/*"
-          capture="environment"
           className="sr-only"
           onChange={(e) => {
             const file = e.target.files?.[0];

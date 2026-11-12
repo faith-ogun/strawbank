@@ -31,7 +31,6 @@ function PhotoButton({ label, onPhoto, primary }: { label: string; onPhoto: (fil
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp,image/*"
-        capture="environment"
         className="sr-only"
         onChange={(e) => {
           const file = e.target.files?.[0];

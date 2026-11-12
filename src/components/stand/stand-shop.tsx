@@ -136,7 +136,6 @@ export function StandShop({ standId, standName, currency, catalogue, paypalClien
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp,image/*"
-        capture="environment"
         className="sr-only"
         onChange={(e) => {
           void onPhoto(e.target.files?.[0]);

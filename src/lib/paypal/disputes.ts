@@ -80,7 +80,7 @@ export async function provideEvidence(
 
 /** The grower refunds instead: PayPal closes the dispute in the customer's favour and refunds them. */
 export async function acceptClaim(disputeId: string, note: string): Promise<{ status: number; debugId?: string }> {
-  const { status, debugId } = await call("POST", `/v1/customer/disputes/${encodeURIComponent(disputeId)}/accept-claim`, JSON.stringify({ note }));
+  const { status, debugId } = await call("POST", `/v1/customer/disputes/${encodeURIComponent(disputeId)}/accept-claim`, JSON.stringify({ note, accept_claim_type: "REFUND" }));
   return { status, debugId };
 }
 
